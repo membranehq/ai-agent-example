@@ -13,6 +13,10 @@ import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { type VisibilityType, VisibilitySelector } from './visibility-selector';
 import type { Session } from 'next-auth';
+import {
+  ConnectionModal,
+  IntegrationList,
+} from '@/components/integration-app/manage-integrations';
 
 function PureChatHeader({
   chatId,
@@ -62,6 +66,8 @@ function PureChatHeader({
           className="order-1 md:order-2"
         />
       )} */}
+
+      <ConnectionModal />
 
       {!isReadonly && (
         <VisibilitySelector
