@@ -27,6 +27,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { VisibilityType } from './visibility-selector';
+import { ListTools } from './tools-list';
 
 function PureMultimodalInput({
   chatId,
@@ -291,8 +292,9 @@ function PureMultimodalInput({
         }}
       />
 
-      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start">
+      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start space-x-2 items-center">
         <AttachmentsButton fileInputRef={fileInputRef} status={status} />
+        <ListTools />
       </div>
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end">
@@ -333,7 +335,7 @@ function PureAttachmentsButton({
   return (
     <Button
       data-testid="attachments-button"
-      className="rounded-md rounded-bl-lg p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
+      size="icon"
       onClick={(event) => {
         event.preventDefault();
         fileInputRef.current?.click();

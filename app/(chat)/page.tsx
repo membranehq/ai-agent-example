@@ -7,7 +7,6 @@ import { DataStreamHandler } from '@/components/data-stream-handler';
 import { auth } from '../(auth)/auth';
 import { redirect } from 'next/navigation';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
-import { getTools } from '@/lib/integration-app/getTools';
 
 export default async function Page() {
   const session = await auth();

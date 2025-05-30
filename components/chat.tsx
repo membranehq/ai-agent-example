@@ -21,25 +21,6 @@ import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
 
-function ListTools() {
-  const { data: tools, error } = useSWR('/api/tools', fetcher);
-
-  if (error) {
-    console.error('Error fetching tools:', error);
-    return null;
-  }
-
-  if (!tools) {
-    return <div>Loading Tools...</div>;
-  }
-
-  return (
-    <div>
-      <pre>{JSON.stringify(tools, null, 2)}</pre>
-    </div>
-  );
-}
-
 export function Chat({
   id,
   initialMessages,
@@ -176,8 +157,6 @@ export function Chat({
           )}
         </form>
       </div>
-
-      <ListTools />
 
       <Artifact
         chatId={id}
