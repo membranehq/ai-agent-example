@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       new URL('https://avatar.vercel.sh/**'),
-      new URL('https://static.integration.app/connectors/**'),
+      new URL('https://static.integration.app/**'),
     ],
   },
 };

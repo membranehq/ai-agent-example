@@ -2,12 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { useIntegrations } from '@integration-app/react';
-import {
-  AlertCircle,
-  Loader2,
-  RefreshCw,
-  Plug2,
-} from 'lucide-react';
+import { AlertCircle, Loader2, RefreshCw, Plug2 } from 'lucide-react';
 import { useState } from 'react';
 import Image from 'next/image';
 import { useIntegrationApp, type Integration } from '@integration-app/react';
@@ -193,12 +188,26 @@ export function IntegrationList() {
 
 export function ConnectionModal() {
   const [open, setOpen] = useState(false);
+  const { integrations } = useIntegrations();
+
+  const hasConnectedIntegration = integrations?.some(
+    (integration) =>
+      integration.connection && !integration.connection.disconnected,
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" variant="outline" className="gap-2">
-          <Plug2 />
+          <div className="relative">
+            <Plug2 />
+            <div
+              className={cn(
+                'absolute -top-1 -right-1 w-2 h-2 rounded-full',
+                hasConnectedIntegration ? 'bg-green-500' : 'bg-red-500',
+              )}
+            />
+          </div>
           Connect apps
         </Button>
       </DialogTrigger>
