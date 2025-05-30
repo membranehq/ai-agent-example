@@ -6,6 +6,15 @@ import { generateUUID } from '@/lib/utils';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { auth } from '../(auth)/auth';
 import { redirect } from 'next/navigation';
+import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
+
+function getIntegrationAppTools({
+  integrationAppCustomerAccessToken,
+}: {
+  integrationAppCustomerAccessToken: string;
+}) {
+  return tools;
+}
 
 export default async function Page() {
   const session = await auth();
@@ -18,6 +27,18 @@ export default async function Page() {
 
   const cookieStore = await cookies();
   const modelIdFromCookie = cookieStore.get('chat-model');
+
+  const integrationAppCustomerAccessToken =
+    await generateIntegrationAppCustomerAccessToken({
+      id: session.user.id,
+      name: session.user.name ?? '',
+    });
+
+  const tools = await getIntegrationAppTools({
+    integrationAppCustomerAccessToken,
+  });
+
+  console.log(tools);
 
   if (!modelIdFromCookie) {
     return (

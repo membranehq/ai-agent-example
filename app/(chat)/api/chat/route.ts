@@ -36,6 +36,8 @@ import { after } from 'next/server';
 import type { Chat } from '@/lib/db/schema';
 import { differenceInSeconds } from 'date-fns';
 import { ChatSDKError } from '@/lib/errors';
+import { getTools } from '@/lib/integration-app/getTools';
+import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
 
 export const maxDuration = 60;
 
@@ -144,6 +146,13 @@ export async function POST(request: Request) {
     const streamId = generateUUID();
     await createStreamId({ streamId, chatId: id });
 
+    const token = await generateIntegrationAppCustomerAccessToken({
+      id: session.user.id,
+      name: session.user.name ?? '',
+    });
+    
+    const integrationAppTools = await getTools({ token });
+
     const stream = createDataStream({
       execute: (dataStream) => {
         const result = streamText({
@@ -151,18 +160,10 @@ export async function POST(request: Request) {
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages,
           maxSteps: 5,
-          experimental_activeTools:
-            selectedChatModel === 'chat-model-reasoning'
-              ? []
-              : [
-                  'getWeather',
-                  'createDocument',
-                  'updateDocument',
-                  'requestSuggestions',
-                ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
           tools: {
+            ...integrationAppTools,
             getWeather,
             createDocument: createDocument({ session, dataStream }),
             updateDocument: updateDocument({ session, dataStream }),
