@@ -7,14 +7,7 @@ import { DataStreamHandler } from '@/components/data-stream-handler';
 import { auth } from '../(auth)/auth';
 import { redirect } from 'next/navigation';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
-
-function getIntegrationAppTools({
-  integrationAppCustomerAccessToken,
-}: {
-  integrationAppCustomerAccessToken: string;
-}) {
-  return tools;
-}
+import { getTools } from '@/lib/integration-app/getTools';
 
 export default async function Page() {
   const session = await auth();
@@ -28,35 +21,12 @@ export default async function Page() {
   const cookieStore = await cookies();
   const modelIdFromCookie = cookieStore.get('chat-model');
 
-  const integrationAppCustomerAccessToken =
-    await generateIntegrationAppCustomerAccessToken({
-      id: session.user.id,
-      name: session.user.name ?? '',
-    });
-
-  const tools = await getIntegrationAppTools({
-    integrationAppCustomerAccessToken,
+  const token = await generateIntegrationAppCustomerAccessToken({
+    id: session.user.id,
+    name: session.user.name ?? '',
   });
 
-  console.log(tools);
-
-  if (!modelIdFromCookie) {
-    return (
-      <>
-        <Chat
-          key={id}
-          id={id}
-          initialMessages={[]}
-          initialChatModel={DEFAULT_CHAT_MODEL}
-          initialVisibilityType="private"
-          isReadonly={false}
-          session={session}
-          autoResume={false}
-        />
-        <DataStreamHandler id={id} />
-      </>
-    );
-  }
+  const getToolsPromise = getTools({ token });
 
   return (
     <>
@@ -64,11 +34,14 @@ export default async function Page() {
         key={id}
         id={id}
         initialMessages={[]}
-        initialChatModel={modelIdFromCookie.value}
+        initialChatModel={
+          !modelIdFromCookie ? DEFAULT_CHAT_MODEL : modelIdFromCookie.value
+        }
         initialVisibilityType="private"
         isReadonly={false}
         session={session}
         autoResume={false}
+        getToolsPromise={getToolsPromise}
       />
       <DataStreamHandler id={id} />
     </>

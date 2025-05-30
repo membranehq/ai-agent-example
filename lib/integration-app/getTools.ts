@@ -5,14 +5,14 @@ export async function getTools({ token }: { token: string }) {
     transport: {
       type: 'sse',
       url: `http://localhost:3000/sse?token=${token}`,
-
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
     },
   });
 
-  const tools = await mcpClient.tools();
-
-  return tools;
+  try {
+    const tools = await mcpClient.tools();
+    return tools;
+  } catch (error) {
+    console.log(error);
+    return {};
+  }
 }

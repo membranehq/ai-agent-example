@@ -2,7 +2,7 @@
 
 import type { Attachment, UIMessage } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useEffect, useState } from 'react';
+import { Suspense, use, useEffect, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
@@ -20,6 +20,18 @@ import { useSearchParams } from 'next/navigation';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
+import type { getTools } from '@/lib/integration-app/getTools';
+
+function ListTools({
+  getToolsPromise,
+}: { getToolsPromise: ReturnType<typeof getTools> }) {
+  const resolvedTools = use(getToolsPromise);
+  return (
+    <div>
+      <pre>{JSON.stringify(resolvedTools, null, 2)}</pre>
+    </div>
+  );
+}
 
 export function Chat({
   id,
@@ -29,6 +41,7 @@ export function Chat({
   isReadonly,
   session,
   autoResume,
+  getToolsPromise,
 }: {
   id: string;
   initialMessages: Array<UIMessage>;
@@ -37,6 +50,7 @@ export function Chat({
   isReadonly: boolean;
   session: Session;
   autoResume: boolean;
+  getToolsPromise: ReturnType<typeof getTools>;
 }) {
   const { mutate } = useSWRConfig();
 
@@ -157,6 +171,10 @@ export function Chat({
           )}
         </form>
       </div>
+
+      <Suspense fallback={<div>Loading Tools...</div>}>
+        <ListTools getToolsPromise={getToolsPromise} />
+      </Suspense>
 
       <Artifact
         chatId={id}
