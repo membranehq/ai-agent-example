@@ -28,6 +28,7 @@ import { ArrowDown } from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { VisibilityType } from './visibility-selector';
 import { ListTools } from './tools-list';
+import { Input } from './ui/input';
 
 function PureMultimodalInput({
   chatId,
@@ -231,7 +232,7 @@ function PureMultimodalInput({
           />
         )}
 
-      <input
+      <Input
         type="file"
         className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
         ref={fileInputRef}

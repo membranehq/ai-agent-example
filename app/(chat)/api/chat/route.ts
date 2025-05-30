@@ -150,7 +150,7 @@ export async function POST(request: Request) {
       id: session.user.id,
       name: session.user.name ?? '',
     });
-    
+
     const integrationAppTools = await getTools({ token });
 
     const stream = createDataStream({
@@ -162,6 +162,7 @@ export async function POST(request: Request) {
           maxSteps: 5,
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
+          experimental_toolCallStreaming: true,
           tools: {
             ...integrationAppTools,
             getWeather,

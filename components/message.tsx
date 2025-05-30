@@ -161,29 +161,40 @@ const PurePreviewMessage = ({
                   const { args } = toolInvocation;
 
                   return (
-                    <div
-                      key={toolCallId}
-                      className={cx({
-                        skeleton: ['getWeather'].includes(toolName),
-                      })}
-                    >
-                      {toolName === 'getWeather' ? (
-                        <Weather />
-                      ) : toolName === 'createDocument' ? (
-                        <DocumentPreview isReadonly={isReadonly} args={args} />
-                      ) : toolName === 'updateDocument' ? (
-                        <DocumentToolCall
-                          type="update"
-                          args={args}
-                          isReadonly={isReadonly}
-                        />
-                      ) : toolName === 'requestSuggestions' ? (
-                        <DocumentToolCall
-                          type="request-suggestions"
-                          args={args}
-                          isReadonly={isReadonly}
-                        />
-                      ) : null}
+                    <div key={toolCallId}>
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {toolName}
+                      </div>
+                      <div
+                        className={cx('animate-pulse', {
+                          skeleton: ['getWeather'].includes(toolName),
+                        })}
+                      >
+                        {toolName === 'getWeather' ? (
+                          <Weather />
+                        ) : toolName === 'createDocument' ? (
+                          <DocumentPreview
+                            isReadonly={isReadonly}
+                            args={args}
+                          />
+                        ) : toolName === 'updateDocument' ? (
+                          <DocumentToolCall
+                            type="update"
+                            args={args}
+                            isReadonly={isReadonly}
+                          />
+                        ) : toolName === 'requestSuggestions' ? (
+                          <DocumentToolCall
+                            type="request-suggestions"
+                            args={args}
+                            isReadonly={isReadonly}
+                          />
+                        ) : (
+                          <div className="text-muted-foreground">
+                            Calling {toolName}...
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 }
@@ -193,28 +204,37 @@ const PurePreviewMessage = ({
 
                   return (
                     <div key={toolCallId}>
-                      {toolName === 'getWeather' ? (
-                        <Weather weatherAtLocation={result} />
-                      ) : toolName === 'createDocument' ? (
-                        <DocumentPreview
-                          isReadonly={isReadonly}
-                          result={result}
-                        />
-                      ) : toolName === 'updateDocument' ? (
-                        <DocumentToolResult
-                          type="update"
-                          result={result}
-                          isReadonly={isReadonly}
-                        />
-                      ) : toolName === 'requestSuggestions' ? (
-                        <DocumentToolResult
-                          type="request-suggestions"
-                          result={result}
-                          isReadonly={isReadonly}
-                        />
-                      ) : (
-                        <pre>{JSON.stringify(result, null, 2)}</pre>
-                      )}
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {toolName}
+                      </div>
+                      <div className="transition-all duration-300">
+                        {toolName === 'getWeather' ? (
+                          <Weather weatherAtLocation={result} />
+                        ) : toolName === 'createDocument' ? (
+                          <DocumentPreview
+                            isReadonly={isReadonly}
+                            result={result}
+                          />
+                        ) : toolName === 'updateDocument' ? (
+                          <DocumentToolResult
+                            type="update"
+                            result={result}
+                            isReadonly={isReadonly}
+                          />
+                        ) : toolName === 'requestSuggestions' ? (
+                          <DocumentToolResult
+                            type="request-suggestions"
+                            result={result}
+                            isReadonly={isReadonly}
+                          />
+                        ) : (
+                          <div className="bg-muted p-4 rounded-lg">
+                            <pre className="text-sm overflow-x-auto">
+                              {JSON.stringify(result, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 }
