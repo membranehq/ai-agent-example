@@ -20,15 +20,22 @@ import { useSearchParams } from 'next/navigation';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
-import type { getTools } from '@/lib/integration-app/getTools';
 
-function ListTools({
-  getToolsPromise,
-}: { getToolsPromise: ReturnType<typeof getTools> }) {
-  const resolvedTools = use(getToolsPromise);
+function ListTools() {
+  const { data: tools, error } = useSWR('/api/tools', fetcher);
+
+  if (error) {
+    console.error('Error fetching tools:', error);
+    return null;
+  }
+
+  if (!tools) {
+    return <div>Loading Tools...</div>;
+  }
+
   return (
     <div>
-      <pre>{JSON.stringify(resolvedTools, null, 2)}</pre>
+      <pre>{JSON.stringify(tools, null, 2)}</pre>
     </div>
   );
 }
@@ -41,7 +48,6 @@ export function Chat({
   isReadonly,
   session,
   autoResume,
-  getToolsPromise,
 }: {
   id: string;
   initialMessages: Array<UIMessage>;
@@ -50,7 +56,6 @@ export function Chat({
   isReadonly: boolean;
   session: Session;
   autoResume: boolean;
-  getToolsPromise: ReturnType<typeof getTools>;
 }) {
   const { mutate } = useSWRConfig();
 
@@ -173,7 +178,7 @@ export function Chat({
       </div>
 
       <Suspense fallback={<div>Loading Tools...</div>}>
-        <ListTools getToolsPromise={getToolsPromise} />
+        <ListTools />
       </Suspense>
 
       <Artifact
