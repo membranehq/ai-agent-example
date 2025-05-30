@@ -177,9 +177,7 @@ export function Chat({
         </form>
       </div>
 
-      <Suspense fallback={<div>Loading Tools...</div>}>
-        <ListTools />
-      </Suspense>
+      <ListTools />
 
       <Artifact
         chatId={id}

@@ -26,8 +26,6 @@ export default async function Page() {
     name: session.user.name ?? '',
   });
 
-  const getToolsPromise = getTools({ token });
-
   return (
     <>
       <Chat
@@ -41,7 +39,6 @@ export default async function Page() {
         isReadonly={false}
         session={session}
         autoResume={false}
-        getToolsPromise={getToolsPromise}
       />
       <DataStreamHandler id={id} />
     </>

@@ -6,8 +6,6 @@ import {
   AlertCircle,
   Loader2,
   RefreshCw,
-  Link,
-  Plug,
   Plug2,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -206,7 +204,7 @@ export function ConnectionModal() {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Connect to the ffgs</DialogTitle>
+          <DialogTitle>Connect to apps</DialogTitle>
         </DialogHeader>
         <div className="overflow-y-auto min-h-[200px] max-h-[70vh]">
           <IntegrationList />
