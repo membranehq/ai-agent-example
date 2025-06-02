@@ -7,6 +7,7 @@ interface TokenData {
 
 export async function generateIntegrationAppCustomerAccessToken(
   tokenData: TokenData,
+  expiresIn = 7200, // 2 hours
 ): Promise<string> {
   if (
     !process.env.INTEGRATION_APP_WORKSPACE_KEY ||
@@ -18,7 +19,7 @@ export async function generateIntegrationAppCustomerAccessToken(
   try {
     const options = {
       issuer: process.env.INTEGRATION_APP_WORKSPACE_KEY,
-      expiresIn: 7200, // 2 hours
+      expiresIn,
       algorithm: 'HS512' as Algorithm,
     };
 

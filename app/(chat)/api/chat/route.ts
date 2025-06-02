@@ -36,7 +36,6 @@ import { ChatSDKError } from '@/lib/errors';
 // import { getTools } from '@/lib/integration-app/getTools';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
 import { exposeTools, getRelevantApps } from '@/lib/ai/tools/get-relevant-apps';
-import fs from 'fs';
 import { cookies } from 'next/headers';
 
 import { ToolInvocation } from 'ai';
@@ -67,7 +66,7 @@ function getStreamContext() {
   return globalStreamContext;
 }
 
-const getTools = (app) => {
+const getTools = (app: string) => {
   const tools = {
     notion: {
       getAllPagesOnNotion: tool({
@@ -141,7 +140,7 @@ const getTools = (app) => {
     },
   };
 
-  return tools[app];
+  return tools[app as keyof typeof tools];
 };
 
 export async function POST(request: Request) {

@@ -2,7 +2,7 @@
 
 import type { Attachment, UIMessage } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
@@ -20,6 +20,7 @@ import { useSearchParams } from 'next/navigation';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
+import { IntegrationAppProvider } from '@integration-app/react';
 
 export function Chat({
   id,
@@ -116,8 +117,14 @@ export function Chat({
     setMessages,
   });
 
+  const fetchToken = async () => {
+    const response = await fetch('/api/integration-app/token');
+    const data = await response.json();
+    return data.token;
+  };
+
   return (
-    <>
+    <IntegrationAppProvider fetchToken={fetchToken}>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
         <ChatHeader
           chatId={id}
@@ -175,6 +182,6 @@ export function Chat({
         isReadonly={isReadonly}
         selectedVisibilityType={visibilityType}
       />
-    </>
+    </IntegrationAppProvider>
   );
 }
