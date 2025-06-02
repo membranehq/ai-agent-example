@@ -18,6 +18,7 @@ import {
   getStreamIdsByChatId,
   saveChat,
   saveMessages,
+  updateChatExposedToolsApp,
 } from '@/lib/db/queries';
 import { generateUUID, getTrailingMessageId } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
@@ -35,7 +36,7 @@ import { differenceInSeconds } from 'date-fns';
 import { ChatSDKError } from '@/lib/errors';
 // import { getTools } from '@/lib/integration-app/getTools';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
-import { exposeTools, getRelevantApps } from '@/lib/ai/tools/get-relevant-apps';
+import { getRelevantApps } from '@/lib/ai/tools/get-relevant-apps';
 import { cookies } from 'next/headers';
 
 import { ToolInvocation } from 'ai';
@@ -67,6 +68,7 @@ function getStreamContext() {
 }
 
 const getTools = (app: string) => {
+  console.log('exposing tools for app', app);
   const tools = {
     notion: {
       getAllPagesOnNotion: tool({
@@ -215,6 +217,7 @@ export async function POST(request: Request) {
     });
 
     const streamId = generateUUID();
+
     await createStreamId({ streamId, chatId: id });
 
     // const token = await generateIntegrationAppCustomerAccessToken({
@@ -222,26 +225,49 @@ export async function POST(request: Request) {
     //   name: session.user.name ?? '',
     // });
 
-    const cookieStore = await cookies();
-    const app = cookieStore.get('app')?.value;
+    const exposedTools = chat.exposedToolsApp
+      ? getTools(chat.exposedToolsApp)
+      : {};
 
-    console.log('app', app);
+    console.log('exposedTools-entry', exposedTools);
 
     const stream = createDataStream({
       execute: async (dataStream) => {
-        const result = streamText({
+        const result = await streamText({
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt(),
           messages,
-          maxSteps: 5,
+          maxSteps: 6,
           experimental_generateMessageId: generateUUID,
           toolCallStreaming: true,
           tools: {
-            ...(app ? getTools(app) : {}),
+            ...exposedTools,
             getRelevantApps,
-            // exposeTools,
+            exposeTools: tool({
+              description:
+                'Expose tools for the selected app. This tool is called after we have found the relevant apps and the user has selected the app to use or we have found a single relevant app',
+              parameters: z.object({
+                app: z
+                  .string()
+                  .describe(`The key of the app to expose tools for`),
+              }),
+              execute: async ({ app }) => {
+                // Save the app key we are exposing tools for:
+                updateChatExposedToolsApp({
+                  chatId: id,
+                  app,
+                });
+
+                return {
+                  app,
+                  text: `Thanks, I've exposed tools for ${app}, Next, the assistant will call the appropriate tool to perform the task`,
+                };
+              },
+            }),
           },
           onFinish: async ({ response }) => {
+            console.log('onFinish-1', response);
+
             if (session.user?.id) {
               try {
                 const assistantId = getTrailingMessageId({
@@ -283,103 +309,97 @@ export async function POST(request: Request) {
           },
         });
 
-        // result.consumeStream();
+        result.consumeStream();
 
         result.mergeIntoDataStream(dataStream, {
           sendReasoning: true,
-          experimental_sendFinish: false, // omit the finish event
+          // experimental_sendFinish: false, // omit the finish event
         });
 
-        const steps = await result.steps;
+        // result.consumeStream();
 
-        let getAppsResult = null;
+        // const steps = await result.steps;
 
-        for (const step of steps) {
-          getAppsResult = step.toolResults.find(
-            (toolResult) => toolResult.toolName === 'getRelevantApps',
-          )?.result.apps;
+        // let appWeExposeToolsFor = null;
 
-          if (getAppsResult) {
-            break;
-          }
-        }
+        // for (const step of steps) {
+        //   appWeExposeToolsFor = step.toolResults.find(
+        //     (toolResult) => toolResult.toolName === 'exposeTools',
+        //   )?.result.app;
 
-        if (getAppsResult) {
-          console.log('getAppsResult', getAppsResult);
+        //   if (appWeExposeToolsFor) {
+        //     break;
+        //   }
+        // }
 
-          const cookieStore = await cookies();
+        // if (appWeExposeToolsFor) {
+        //   console.log('getAppsResult', appWeExposeToolsFor);
 
-          const app = getAppsResult[0];
+        //   const derievedTools = getTools(appWeExposeToolsFor);
 
-          console.log('Inside-getAppsResult', app);
+        //   console.log({ derievedTools });
 
-          // Store in cookies
-          cookieStore.set('app', app);
+        //   //  set tools
+        //   const result1 = streamText({
+        //     model: myProvider.languageModel(selectedChatModel),
+        //     system: systemPrompt(),
+        //     messages,
+        //     maxSteps: 5,
+        //     experimental_generateMessageId: generateUUID,
+        //     toolCallStreaming: true,
+        //     tools: {
+        //       ...derievedTools,
+        //     },
+        //     onFinish: async ({ response }) => {
+        //       if (session.user?.id) {
+        //         try {
+        //           const assistantId = getTrailingMessageId({
+        //             messages: response.messages.filter(
+        //               (message) => message.role === 'assistant',
+        //             ),
+        //           });
 
-          const derievedTools = getTools(app);
+        //           if (!assistantId) {
+        //             throw new Error('No assistant message found!');
+        //           }
 
-          //  set tools
-          const result1 = streamText({
-            model: myProvider.languageModel(selectedChatModel),
-            system: systemPrompt(),
-            messages,
-            maxSteps: 5,
-            experimental_generateMessageId: generateUUID,
-            toolCallStreaming: true,
-            tools: {
-              ...derievedTools,
-            },
-            onFinish: async ({ response }) => {
-              if (session.user?.id) {
-                try {
-                  const assistantId = getTrailingMessageId({
-                    messages: response.messages.filter(
-                      (message) => message.role === 'assistant',
-                    ),
-                  });
+        //           const [, assistantMessage] = appendResponseMessages({
+        //             messages: [message],
+        //             responseMessages: response.messages,
+        //           });
 
-                  if (!assistantId) {
-                    throw new Error('No assistant message found!');
-                  }
+        //           await saveMessages({
+        //             messages: [
+        //               {
+        //                 id: assistantId,
+        //                 chatId: id,
+        //                 role: assistantMessage.role,
+        //                 parts: assistantMessage.parts,
+        //                 attachments:
+        //                   assistantMessage.experimental_attachments ?? [],
+        //                 createdAt: new Date(),
+        //               },
+        //             ],
+        //           });
+        //         } catch (_) {
+        //           console.error('Failed to save chat');
+        //         }
+        //       }
+        //     },
+        //     experimental_telemetry: {
+        //       isEnabled: isProductionEnvironment,
+        //       functionId: 'stream-text',
+        //     },
+        //   });
 
-                  const [, assistantMessage] = appendResponseMessages({
-                    messages: [message],
-                    responseMessages: response.messages,
-                  });
+        //   result1.mergeIntoDataStream(dataStream, {
+        //     experimental_sendStart: false,
+        //     sendReasoning: true,
+        //     experimental_sendFinish: true,
+        //   });
 
-                  await saveMessages({
-                    messages: [
-                      {
-                        id: assistantId,
-                        chatId: id,
-                        role: assistantMessage.role,
-                        parts: assistantMessage.parts,
-                        attachments:
-                          assistantMessage.experimental_attachments ?? [],
-                        createdAt: new Date(),
-                      },
-                    ],
-                  });
-                } catch (_) {
-                  console.error('Failed to save chat');
-                }
-              }
-            },
-            experimental_telemetry: {
-              isEnabled: isProductionEnvironment,
-              functionId: 'stream-text',
-            },
-          });
-
-          // result1.consumeStream();
-
-          result1.mergeIntoDataStream(dataStream, {
-            experimental_sendStart: false,
-            sendReasoning: true,
-          });
-
-          // stream second result
-        }
+        //   result1.consumeStream();
+        // }
       },
       onError: () => {
         return 'Oops, an error occurred!';
