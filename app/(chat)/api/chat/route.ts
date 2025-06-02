@@ -260,11 +260,11 @@ export async function POST(request: Request) {
 
     console.log('chat.exposedToolsApp', chat);
 
-    // const exposedTools = chat.exposedToolsApp
-    //   ? await getTools(chat.exposedToolsApp)
-    //   : {};
+    const exposedTools = chat?.exposedToolsApp
+      ? await getTools(chat.exposedToolsApp)
+      : {};
 
-    // console.log('exposedTools-entry', exposedTools);
+    console.log('exposedTools-entry', exposedTools);
 
     console.log('stream-entry');
 
@@ -278,7 +278,7 @@ export async function POST(request: Request) {
           experimental_generateMessageId: generateUUID,
           toolCallStreaming: true,
           tools: {
-            // ...exposedTools,
+            ...exposedTools,
             internal_getRelevantApps: getRelevantApps,
             internal_exposeTools: tool({
               description:
@@ -361,7 +361,10 @@ export async function POST(request: Request) {
           }
         }
 
-        if (appWeExposeToolsFor) {
+        if (
+          appWeExposeToolsFor &&
+          appWeExposeToolsFor !== chat?.exposedToolsApp
+        ) {
           console.log('getAppsResult', appWeExposeToolsFor);
 
           const derievedTools = await getTools(appWeExposeToolsFor);
