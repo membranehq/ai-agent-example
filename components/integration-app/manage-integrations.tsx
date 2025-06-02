@@ -2,12 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { useIntegrations } from '@integration-app/react';
-import { AlertCircle, Loader2, RefreshCw, Plug2 } from 'lucide-react';
+import { AlertCircle, Loader2, RefreshCw, Plug2, Search } from 'lucide-react';
 import { useState } from 'react';
 import Image from 'next/image';
 import { useIntegrationApp, type Integration } from '@integration-app/react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
 import {
   Dialog,
@@ -142,46 +143,61 @@ export function IntegrationListItem({
 }
 
 export function IntegrationList() {
+  const [searchQuery, setSearchQuery] = useState('');
   const {
     integrations,
     refresh,
     loading: integrationsIsLoading,
     error,
-  } = useIntegrations();
+  } = useIntegrations({ search: searchQuery });
 
   return (
-    <div>
-      {integrationsIsLoading ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <p className="text-sm text-muted-foreground">
-            Loading integrations...
-          </p>
-        </div>
-      ) : error ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <AlertCircle />
-          <p className="text-sm text-muted-foreground mb-4">
-            {error.message || 'Failed to load integrations'}
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refresh()}
-            className="gap-2"
-          >
-            <RefreshCw />
-            Try again
-          </Button>
-        </div>
-      ) : (
-        integrations.map((integration) => (
-          <IntegrationListItem
-            key={integration.key}
-            integration={integration}
-            onRefresh={refresh}
+    <div className="flex flex-col h-full">
+      <div className="sticky top-0 z-10 bg-background p-2">
+        <div className="relative">
+          <Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Search integrations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8"
           />
-        ))
-      )}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto">
+        {integrationsIsLoading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <p className="text-sm text-muted-foreground">
+              Loading integrations...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <AlertCircle />
+            <p className="text-sm text-muted-foreground mb-4">
+              {error.message || 'Failed to load integrations'}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refresh()}
+              className="gap-2"
+            >
+              <RefreshCw />
+              Try again
+            </Button>
+          </div>
+        ) : (
+          integrations.map((integration) => (
+            <IntegrationListItem
+              key={integration.key}
+              integration={integration}
+              onRefresh={refresh}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 }
@@ -215,7 +231,7 @@ export function ConnectionModal() {
         <DialogHeader>
           <DialogTitle>Connect to apps</DialogTitle>
         </DialogHeader>
-        <div className="overflow-y-auto min-h-[200px] max-h-[70vh]">
+        <div className="overflow-y-auto h-[70vh]">
           <IntegrationList />
         </div>
       </DialogContent>
