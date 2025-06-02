@@ -16,7 +16,7 @@ import {
 } from './models.test';
 
 export const myProvider = isTestEnvironment
-  ? customProvider({  
+  ? customProvider({
       languageModels: {
         'chat-model': chatModel,
         'chat-model-reasoning': reasoningModel,
@@ -26,7 +26,7 @@ export const myProvider = isTestEnvironment
     })
   : customProvider({
       languageModels: {
-        'chat-model': anthropic('claude-3-haiku-20240307'),
+        'chat-model': anthropic('claude-4-opus-20250514'),
         'chat-model-reasoning': wrapLanguageModel({
           model: openai('gpt-4o'),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),

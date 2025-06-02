@@ -67,9 +67,29 @@ function getStreamContext() {
   return globalStreamContext;
 }
 
-const getTools = (app: string) => {
+const getTools = async (app: string) => {
   console.log('exposing tools for app', app);
   const tools = {
+    hubspot: {
+      createHubspotContact: tool({
+        description: 'Create a new Hubspot contact',
+        parameters: z.object({
+          firstName: z.string().describe('The first name of the contact'),
+          lastName: z.string().describe('The last name of the contact'),
+          email: z.string().describe('The email of the contact'),
+        }),
+        execute: async ({ firstName, lastName, email }) => {
+          return {
+            success: true,
+            contact: {
+              id: '123',
+              name: 'John Doe',
+              email: 'john.doe@example.com',
+            },
+          };
+        },
+      }),
+    },
     notion: {
       getAllPagesOnNotion: tool({
         description: 'Get all pages on Notion',
@@ -95,9 +115,8 @@ const getTools = (app: string) => {
         description: 'Create a new Notion page',
         parameters: z.object({
           title: z.string().describe('The title of the page'),
-          zoboCheck: z.string().describe('What Zobo  drink do you have'),
         }),
-        execute: async ({ title, zoboCheck }) => {
+        execute: async ({ title }) => {
           return {
             success: true,
             page: {
@@ -172,16 +191,22 @@ export async function POST(request: Request) {
       differenceInHours: 24,
     });
 
+    console.log('messageCount', messageCount);
+
     if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
       return new ChatSDKError('rate_limit:chat').toResponse();
     }
 
     const chat = await getChatById({ id });
 
+    console.log('chat-2', chat);
+
     if (!chat) {
       const title = await generateTitleFromUserMessage({
         message,
       });
+
+      console.log('title', title);
 
       await saveChat({
         id,
@@ -189,6 +214,8 @@ export async function POST(request: Request) {
         title,
         visibility: selectedVisibilityType,
       });
+
+      console.log('saveChat');
     } else {
       if (chat.userId !== session.user.id) {
         return new ChatSDKError('forbidden:chat').toResponse();
@@ -197,11 +224,15 @@ export async function POST(request: Request) {
 
     const previousMessages = await getMessagesByChatId({ id });
 
+    console.log('previousMessages', previousMessages);
+
     const messages = appendClientMessage({
       // @ts-expect-error: todo add type conversion from DBMessage[] to UIMessage[]
       messages: previousMessages,
       message,
     });
+
+    console.log('messages', messages);
 
     await saveMessages({
       messages: [
@@ -216,34 +247,40 @@ export async function POST(request: Request) {
       ],
     });
 
-    const streamId = generateUUID();
+    console.log('saveMessages');
 
-    await createStreamId({ streamId, chatId: id });
+    // const streamId = generateUUID();
+
+    // await createStreamId({ streamId, chatId: id });
 
     // const token = await generateIntegrationAppCustomerAccessToken({
     //   id: session.user.id,
     //   name: session.user.name ?? '',
     // });
 
-    const exposedTools = chat.exposedToolsApp
-      ? getTools(chat.exposedToolsApp)
-      : {};
+    console.log('chat.exposedToolsApp', chat);
 
-    console.log('exposedTools-entry', exposedTools);
+    // const exposedTools = chat.exposedToolsApp
+    //   ? await getTools(chat.exposedToolsApp)
+    //   : {};
+
+    // console.log('exposedTools-entry', exposedTools);
+
+    console.log('stream-entry');
 
     const stream = createDataStream({
       execute: async (dataStream) => {
-        const result = await streamText({
+        const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt(),
           messages,
-          maxSteps: 6,
+          maxSteps: 10,
           experimental_generateMessageId: generateUUID,
           toolCallStreaming: true,
           tools: {
-            ...exposedTools,
-            getRelevantApps,
-            exposeTools: tool({
+            // ...exposedTools,
+            internal_getRelevantApps: getRelevantApps,
+            internal_exposeTools: tool({
               description:
                 'Expose tools for the selected app. This tool is called after we have found the relevant apps and the user has selected the app to use or we have found a single relevant app',
               parameters: z.object({
@@ -260,14 +297,12 @@ export async function POST(request: Request) {
 
                 return {
                   app,
-                  text: `Thanks, I've exposed tools for ${app}, Next, the assistant will call the appropriate tool to perform the task`,
+                  text: `Thanks, I've exposed tools for ${app}`,
                 };
               },
             }),
           },
           onFinish: async ({ response }) => {
-            console.log('onFinish-1', response);
-
             if (session.user?.id) {
               try {
                 const assistantId = getTrailingMessageId({
@@ -303,103 +338,88 @@ export async function POST(request: Request) {
               }
             }
           },
-          experimental_telemetry: {
-            isEnabled: isProductionEnvironment,
-            functionId: 'stream-text',
-          },
         });
 
         result.consumeStream();
 
         result.mergeIntoDataStream(dataStream, {
           sendReasoning: true,
-          // experimental_sendFinish: false, // omit the finish event
+          experimental_sendFinish: false,
         });
 
-        // result.consumeStream();
+        const steps = await result.steps;
 
-        // const steps = await result.steps;
+        let appWeExposeToolsFor = null;
 
-        // let appWeExposeToolsFor = null;
+        for (const step of steps) {
+          appWeExposeToolsFor = step.toolResults.find(
+            (toolResult) => toolResult.toolName === 'internal_exposeTools',
+          )?.result.app;
 
-        // for (const step of steps) {
-        //   appWeExposeToolsFor = step.toolResults.find(
-        //     (toolResult) => toolResult.toolName === 'exposeTools',
-        //   )?.result.app;
+          if (appWeExposeToolsFor) {
+            break;
+          }
+        }
 
-        //   if (appWeExposeToolsFor) {
-        //     break;
-        //   }
-        // }
+        if (appWeExposeToolsFor) {
+          console.log('getAppsResult', appWeExposeToolsFor);
 
-        // if (appWeExposeToolsFor) {
-        //   console.log('getAppsResult', appWeExposeToolsFor);
+          const derievedTools = await getTools(appWeExposeToolsFor);
 
-        //   const derievedTools = getTools(appWeExposeToolsFor);
+          console.log({ derievedTools });
 
-        //   console.log({ derievedTools });
+          //  set tools
+          const result1 = streamText({
+            model: myProvider.languageModel(selectedChatModel),
+            system: `You're a friendly task assistant, based on these messages, call the appropriate tool to perform the task specified by the user`,
+            messages,
+            maxSteps: 5,
+            experimental_generateMessageId: generateUUID,
+            toolCallStreaming: true,
+            tools: {
+              ...derievedTools,
+            },
+            onFinish: async ({ response }) => {
+              try {
+                const assistantId = getTrailingMessageId({
+                  messages: response.messages.filter(
+                    (message) => message.role === 'assistant',
+                  ),
+                });
 
-        //   //  set tools
-        //   const result1 = streamText({
-        //     model: myProvider.languageModel(selectedChatModel),
-        //     system: systemPrompt(),
-        //     messages,
-        //     maxSteps: 5,
-        //     experimental_generateMessageId: generateUUID,
-        //     toolCallStreaming: true,
-        //     tools: {
-        //       ...derievedTools,
-        //     },
-        //     onFinish: async ({ response }) => {
-        //       if (session.user?.id) {
-        //         try {
-        //           const assistantId = getTrailingMessageId({
-        //             messages: response.messages.filter(
-        //               (message) => message.role === 'assistant',
-        //             ),
-        //           });
+                if (!assistantId) {
+                  throw new Error('No assistant message found!');
+                }
 
-        //           if (!assistantId) {
-        //             throw new Error('No assistant message found!');
-        //           }
+                const [, assistantMessage] = appendResponseMessages({
+                  messages: [message],
+                  responseMessages: response.messages,
+                });
 
-        //           const [, assistantMessage] = appendResponseMessages({
-        //             messages: [message],
-        //             responseMessages: response.messages,
-        //           });
+                await saveMessages({
+                  messages: [
+                    {
+                      id: assistantId,
+                      chatId: id,
+                      role: assistantMessage.role,
+                      parts: assistantMessage.parts,
+                      attachments:
+                        assistantMessage.experimental_attachments ?? [],
+                      createdAt: new Date(),
+                    },
+                  ],
+                });
+              } catch (_) {
+                console.error('Failed to save chat');
+              }
+            },
+          });
 
-        //           await saveMessages({
-        //             messages: [
-        //               {
-        //                 id: assistantId,
-        //                 chatId: id,
-        //                 role: assistantMessage.role,
-        //                 parts: assistantMessage.parts,
-        //                 attachments:
-        //                   assistantMessage.experimental_attachments ?? [],
-        //                 createdAt: new Date(),
-        //               },
-        //             ],
-        //           });
-        //         } catch (_) {
-        //           console.error('Failed to save chat');
-        //         }
-        //       }
-        //     },
-        //     experimental_telemetry: {
-        //       isEnabled: isProductionEnvironment,
-        //       functionId: 'stream-text',
-        //     },
-        //   });
-
-        //   result1.mergeIntoDataStream(dataStream, {
-        //     experimental_sendStart: false,
-        //     sendReasoning: true,
-        //     experimental_sendFinish: true,
-        //   });
-
-        //   result1.consumeStream();
-        // }
+          result1.mergeIntoDataStream(dataStream, {
+            experimental_sendStart: false,
+            experimental_sendFinish: true,
+          });
+        }
       },
       onError: () => {
         return 'Oops, an error occurred!';
@@ -408,13 +428,13 @@ export async function POST(request: Request) {
 
     const streamContext = getStreamContext();
 
-    if (streamContext) {
-      return new Response(
-        await streamContext.resumableStream(streamId, () => stream),
-      );
-    } else {
-      return new Response(stream);
-    }
+    // if (streamContext) {
+    //   return new Response(
+    //     await streamContext.resumableStream(streamId, () => stream),
+    //   );
+    // } else {
+    return new Response(stream);
+    // }
   } catch (error) {
     if (error instanceof ChatSDKError) {
       return error.toResponse();
