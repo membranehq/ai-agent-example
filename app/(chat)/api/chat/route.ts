@@ -67,6 +67,18 @@ function getStreamContext() {
   return globalStreamContext;
 }
 
+const connections = {
+  hubspot: false,
+  notion: false,
+  'google-calendar': true,
+};
+
+const requireConnection = async (app: string) => {
+  if (!connections[app as keyof typeof connections]) {
+    throw new Error(`Connection to ${app} is required`);
+  }
+};
+
 const getTools = async (app: string) => {
   console.log('exposing tools for app', app);
   const tools = {
@@ -429,7 +441,7 @@ export async function POST(request: Request) {
       },
     });
 
-    const streamContext = getStreamContext();
+    // const streamContext = getStreamContext();
 
     // if (streamContext) {
     //   return new Response(
@@ -446,12 +458,12 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const streamContext = getStreamContext();
+  // const streamContext = getStreamContext();
   const resumeRequestedAt = new Date();
 
-  if (!streamContext) {
-    return new Response(null, { status: 204 });
-  }
+  // if (!streamContext) {
+  //   return new Response(null, { status: 204 });
+  // }
 
   const { searchParams } = new URL(request.url);
   const chatId = searchParams.get('chatId');
@@ -498,16 +510,16 @@ export async function GET(request: Request) {
     execute: () => {},
   });
 
-  const stream = await streamContext.resumableStream(
-    recentStreamId,
-    () => emptyDataStream,
-  );
+  // const stream = await streamContext.resumableStream(
+  //   recentStreamId,
+  //   () => emptyDataStream,
+  // );
 
   /*
    * For when the generation is streaming during SSR
    * but the resumable stream has concluded at this point.
    */
-  if (!stream) {
+  // if (!stream) {
     const messages = await getMessagesByChatId({ id: chatId });
     const mostRecentMessage = messages.at(-1);
 
@@ -537,8 +549,8 @@ export async function GET(request: Request) {
     return new Response(restoredStream, { status: 200 });
   }
 
-  return new Response(stream, { status: 200 });
-}
+  // return new Response(stream, { status: 200 });
+// }
 
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
