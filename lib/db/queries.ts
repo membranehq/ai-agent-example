@@ -100,6 +100,7 @@ export async function saveChat({
       visibility,
     });
   } catch (error) {
+    console.error('error', error);
     throw new ChatSDKError('bad_request:database', 'Failed to save chat');
   }
 }
@@ -192,6 +193,7 @@ export async function getChatsByUserId({
       hasMore,
     };
   } catch (error) {
+    console.error('error', error);
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to get chats by user id',
@@ -465,6 +467,22 @@ export async function updateChatVisiblityById({
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to update chat visibility by id',
+    );
+  }
+}
+
+export async function updateChatExposedToolsApp({
+  app, chatId
+}: {
+  app: string
+  chatId: string
+}) {
+  try {
+    return await db.update(chat).set({ exposedToolsApp: app }).where(eq(chat.id, chatId));
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update chat exposed tools app',
     );
   }
 }

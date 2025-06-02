@@ -1,12 +1,14 @@
 import {
   appendClientMessage,
   appendResponseMessages,
+  convertToCoreMessages,
   createDataStream,
   smoothStream,
   streamText,
+  tool,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
-import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
+import { systemPrompt } from '@/lib/ai/prompts';
 import {
   createStreamId,
   deleteChatById,
@@ -19,15 +21,10 @@ import {
 } from '@/lib/db/queries';
 import { generateUUID, getTrailingMessageId } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
-import { createDocument } from '@/lib/ai/tools/create-document';
-import { updateDocument } from '@/lib/ai/tools/update-document';
-import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
-import { getWeather } from '@/lib/ai/tools/get-weather';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
-import { geolocation } from '@vercel/functions';
 import {
   createResumableStreamContext,
   type ResumableStreamContext,
@@ -36,8 +33,15 @@ import { after } from 'next/server';
 import type { Chat } from '@/lib/db/schema';
 import { differenceInSeconds } from 'date-fns';
 import { ChatSDKError } from '@/lib/errors';
-import { getTools } from '@/lib/integration-app/getTools';
+// import { getTools } from '@/lib/integration-app/getTools';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
+import { exposeTools, getRelevantApps } from '@/lib/ai/tools/get-relevant-apps';
+import fs from 'fs';
+import { cookies } from 'next/headers';
+
+import { ToolInvocation } from 'ai';
+import { openai } from '@ai-sdk/openai';
+import { z } from 'zod';
 
 export const maxDuration = 60;
 
@@ -62,6 +66,83 @@ function getStreamContext() {
 
   return globalStreamContext;
 }
+
+const getTools = (app) => {
+  const tools = {
+    notion: {
+      getAllPagesOnNotion: tool({
+        description: 'Get all pages on Notion',
+        parameters: z.object({}),
+        execute: async () => {
+          return {
+            pages: [
+              {
+                id: '123',
+                title: 'Page Solar',
+                url: 'https://www.notion.so/page1',
+              },
+              {
+                id: '456',
+                title: 'Page Yowa',
+                url: 'https://www.notion.so/page2',
+              },
+            ],
+          };
+        },
+      }),
+      createANotionPage: tool({
+        description: 'Create a new Notion page',
+        parameters: z.object({
+          title: z.string().describe('The title of the page'),
+          zoboCheck: z.string().describe('What Zobo  drink do you have'),
+        }),
+        execute: async ({ title, zoboCheck }) => {
+          return {
+            success: true,
+            page: {
+              id: title,
+            },
+          };
+        },
+      }),
+    },
+    'google-calendar': {
+      createGoogleCalendarEvent: tool({
+        description: 'Create a new event in Google Calendar',
+        parameters: z.object({
+          title: z.string().describe('The title of the event'),
+        }),
+        execute: async ({ title }) => {
+          return {
+            success: true,
+            event: {
+              id: title,
+            },
+          };
+        },
+      }),
+      getGoogleCalendarEvents: tool({
+        description: 'Get events from Google Calendar',
+        parameters: z.object({}),
+        execute: async () => {
+          return {
+            events: [
+              {
+                id: '123',
+                title: 'Event 1',
+                description: 'Description 1',
+                start: '2025-01-01',
+                end: '2025-01-02',
+              },
+            ],
+          };
+        },
+      }),
+    },
+  };
+
+  return tools[app];
+};
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
@@ -121,15 +202,6 @@ export async function POST(request: Request) {
       message,
     });
 
-    const { longitude, latitude, city, country } = geolocation(request);
-
-    const requestHints: RequestHints = {
-      longitude,
-      latitude,
-      city,
-      country,
-    };
-
     await saveMessages({
       messages: [
         {
@@ -146,32 +218,29 @@ export async function POST(request: Request) {
     const streamId = generateUUID();
     await createStreamId({ streamId, chatId: id });
 
-    const token = await generateIntegrationAppCustomerAccessToken({
-      id: session.user.id,
-      name: session.user.name ?? '',
-    });
+    // const token = await generateIntegrationAppCustomerAccessToken({
+    //   id: session.user.id,
+    //   name: session.user.name ?? '',
+    // });
 
-    const integrationAppTools = await getTools({ token });
+    const cookieStore = await cookies();
+    const app = cookieStore.get('app')?.value;
+
+    console.log('app', app);
 
     const stream = createDataStream({
-      execute: (dataStream) => {
+      execute: async (dataStream) => {
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel, requestHints }),
+          system: systemPrompt(),
           messages,
           maxSteps: 5,
-          experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
-          experimental_toolCallStreaming: true,
+          toolCallStreaming: true,
           tools: {
-            ...integrationAppTools,
-            getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
-            }),
+            ...(app ? getTools(app) : {}),
+            getRelevantApps,
+            // exposeTools,
           },
           onFinish: async ({ response }) => {
             if (session.user?.id) {
@@ -215,11 +284,103 @@ export async function POST(request: Request) {
           },
         });
 
-        result.consumeStream();
+        // result.consumeStream();
 
         result.mergeIntoDataStream(dataStream, {
           sendReasoning: true,
+          experimental_sendFinish: false, // omit the finish event
         });
+
+        const steps = await result.steps;
+
+        let getAppsResult = null;
+
+        for (const step of steps) {
+          getAppsResult = step.toolResults.find(
+            (toolResult) => toolResult.toolName === 'getRelevantApps',
+          )?.result.apps;
+
+          if (getAppsResult) {
+            break;
+          }
+        }
+
+        if (getAppsResult) {
+          console.log('getAppsResult', getAppsResult);
+
+          const cookieStore = await cookies();
+
+          const app = getAppsResult[0];
+
+          console.log('Inside-getAppsResult', app);
+
+          // Store in cookies
+          cookieStore.set('app', app);
+
+          const derievedTools = getTools(app);
+
+          //  set tools
+          const result1 = streamText({
+            model: myProvider.languageModel(selectedChatModel),
+            system: systemPrompt(),
+            messages,
+            maxSteps: 5,
+            experimental_generateMessageId: generateUUID,
+            toolCallStreaming: true,
+            tools: {
+              ...derievedTools,
+            },
+            onFinish: async ({ response }) => {
+              if (session.user?.id) {
+                try {
+                  const assistantId = getTrailingMessageId({
+                    messages: response.messages.filter(
+                      (message) => message.role === 'assistant',
+                    ),
+                  });
+
+                  if (!assistantId) {
+                    throw new Error('No assistant message found!');
+                  }
+
+                  const [, assistantMessage] = appendResponseMessages({
+                    messages: [message],
+                    responseMessages: response.messages,
+                  });
+
+                  await saveMessages({
+                    messages: [
+                      {
+                        id: assistantId,
+                        chatId: id,
+                        role: assistantMessage.role,
+                        parts: assistantMessage.parts,
+                        attachments:
+                          assistantMessage.experimental_attachments ?? [],
+                        createdAt: new Date(),
+                      },
+                    ],
+                  });
+                } catch (_) {
+                  console.error('Failed to save chat');
+                }
+              }
+            },
+            experimental_telemetry: {
+              isEnabled: isProductionEnvironment,
+              functionId: 'stream-text',
+            },
+          });
+
+          // result1.consumeStream();
+
+          result1.mergeIntoDataStream(dataStream, {
+            experimental_sendStart: false,
+            sendReasoning: true,
+          });
+
+          // stream second result
+        }
       },
       onError: () => {
         return 'Oops, an error occurred!';

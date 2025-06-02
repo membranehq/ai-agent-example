@@ -4,6 +4,7 @@ import {
   wrapLanguageModel,
 } from 'ai';
 import { openai } from '@ai-sdk/openai';
+import { anthropic } from '@ai-sdk/anthropic';
 import { xai } from '@ai-sdk/xai';
 
 import { isTestEnvironment } from '../constants';
@@ -25,7 +26,7 @@ export const myProvider = isTestEnvironment
     })
   : customProvider({
       languageModels: {
-        'chat-model': openai('gpt-4o'),
+        'chat-model': anthropic('claude-3-haiku-20240307'),
         'chat-model-reasoning': wrapLanguageModel({
           model: openai('gpt-4o'),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
