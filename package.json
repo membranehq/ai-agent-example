@@ -29,6 +29,7 @@
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.35.3",
     "@integration-app/react": "^2.17.1",
+    "@integration-app/sdk": "^1.11.4",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/api-logs": "^0.200.0",
     "@radix-ui/react-alert-dialog": "^1.1.2",

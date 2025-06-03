@@ -1,4 +1,3 @@
-import { updateChatExposedToolsApp } from '@/lib/db/queries';
 import { tool } from 'ai';
 import { z } from 'zod';
 

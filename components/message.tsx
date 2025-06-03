@@ -19,6 +19,7 @@ import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import { ConnectButton } from './integration-app/connect-button';
 
 const PurePreviewMessage = ({
   chatId,
@@ -29,6 +30,7 @@ const PurePreviewMessage = ({
   reload,
   isReadonly,
   requiresScrollPadding,
+  append,
 }: {
   chatId: string;
   message: UIMessage;
@@ -38,6 +40,7 @@ const PurePreviewMessage = ({
   reload: UseChatHelpers['reload'];
   isReadonly: boolean;
   requiresScrollPadding: boolean;
+  append: UseChatHelpers['append'];
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
 
@@ -226,6 +229,12 @@ const PurePreviewMessage = ({
                             type="request-suggestions"
                             result={result}
                             isReadonly={isReadonly}
+                          />
+                        ) : toolName === 'connectApp' ? (
+                          <ConnectButton
+                            integrationKey={result.integrationKey}
+                            logoUri={result.logoUri}
+                            append={append}
                           />
                         ) : (
                           <div className="bg-muted p-4 rounded-lg">

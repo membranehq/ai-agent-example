@@ -322,6 +322,7 @@ function PureArtifact({
                   reload={reload}
                   isReadonly={isReadonly}
                   artifactStatus={artifact.status}
+                  append={append}
                 />
 
                 <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4">

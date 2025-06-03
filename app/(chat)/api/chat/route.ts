@@ -22,7 +22,6 @@ import {
 } from '@/lib/db/queries';
 import { generateUUID, getTrailingMessageId } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
-import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
@@ -34,14 +33,11 @@ import { after } from 'next/server';
 import type { Chat } from '@/lib/db/schema';
 import { differenceInSeconds } from 'date-fns';
 import { ChatSDKError } from '@/lib/errors';
-// import { getTools } from '@/lib/integration-app/getTools';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
 import { getRelevantApps } from '@/lib/ai/tools/get-relevant-apps';
-import { cookies } from 'next/headers';
-
-import { ToolInvocation } from 'ai';
-import { openai } from '@ai-sdk/openai';
 import { z } from 'zod';
+import { IntegrationAppClient } from '@integration-app/sdk';
+import { getTools } from '@/lib/integration-app/getTools';
 
 export const maxDuration = 60;
 
@@ -66,115 +62,6 @@ function getStreamContext() {
 
   return globalStreamContext;
 }
-
-const connections = {
-  hubspot: false,
-  notion: false,
-  'google-calendar': true,
-};
-
-const requireConnection = async (app: string) => {
-  if (!connections[app as keyof typeof connections]) {
-    throw new Error(`Connection to ${app} is required`);
-  }
-};
-
-const getTools = async (app: string) => {
-  console.log('exposing tools for app', app);
-  const tools = {
-    hubspot: {
-      createHubspotContact: tool({
-        description: 'Create a new Hubspot contact',
-        parameters: z.object({
-          firstName: z.string().describe('The first name of the contact'),
-          lastName: z.string().describe('The last name of the contact'),
-          email: z.string().describe('The email of the contact'),
-        }),
-        execute: async ({ firstName, lastName, email }) => {
-          return {
-            success: true,
-            contact: {
-              id: '123',
-              name: 'John Doe',
-              email: 'john.doe@example.com',
-            },
-          };
-        },
-      }),
-    },
-    notion: {
-      getAllPagesOnNotion: tool({
-        description: 'Get all pages on Notion',
-        parameters: z.object({}),
-        execute: async () => {
-          return {
-            pages: [
-              {
-                id: '123',
-                title: 'Page Solar',
-                url: 'https://www.notion.so/page1',
-              },
-              {
-                id: '456',
-                title: 'Page Yowa',
-                url: 'https://www.notion.so/page2',
-              },
-            ],
-          };
-        },
-      }),
-      createANotionPage: tool({
-        description: 'Create a new Notion page',
-        parameters: z.object({
-          title: z.string().describe('The title of the page'),
-        }),
-        execute: async ({ title }) => {
-          return {
-            success: true,
-            page: {
-              id: title,
-            },
-          };
-        },
-      }),
-    },
-    'google-calendar': {
-      createGoogleCalendarEvent: tool({
-        description: 'Create a new event in Google Calendar',
-        parameters: z.object({
-          title: z.string().describe('The title of the event'),
-        }),
-        execute: async ({ title }) => {
-          return {
-            success: true,
-            event: {
-              id: title,
-            },
-          };
-        },
-      }),
-      getGoogleCalendarEvents: tool({
-        description: 'Get events from Google Calendar',
-        parameters: z.object({}),
-        execute: async () => {
-          return {
-            events: [
-              {
-                id: '123',
-                title: 'Event 1',
-                description: 'Description 1',
-                start: '2025-01-01',
-                end: '2025-01-02',
-              },
-            ],
-          };
-        },
-      }),
-    },
-  };
-
-  return tools[app as keyof typeof tools];
-};
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
@@ -265,20 +152,21 @@ export async function POST(request: Request) {
 
     // await createStreamId({ streamId, chatId: id });
 
-    // const token = await generateIntegrationAppCustomerAccessToken({
-    //   id: session.user.id,
-    //   name: session.user.name ?? '',
-    // });
+    const token = await generateIntegrationAppCustomerAccessToken({
+      id: session.user.id,
+      name: session.user.name ?? '',
+    });
 
     console.log('chat.exposedToolsApp', chat);
 
-    const exposedTools = chat?.exposedToolsApp
-      ? await getTools(chat.exposedToolsApp)
+    const tools = chat?.exposedToolsApp
+      ? await getTools({
+          token,
+          app: chat.exposedToolsApp,
+        })
       : {};
 
-    console.log('exposedTools-entry', exposedTools);
-
-    console.log('stream-entry');
+    console.log('stream-entry-----001');
 
     const stream = createDataStream({
       execute: async (dataStream) => {
@@ -289,8 +177,12 @@ export async function POST(request: Request) {
           maxSteps: 10,
           experimental_generateMessageId: generateUUID,
           toolCallStreaming: true,
+          experimental_transform: smoothStream({
+            delayInMs: 20, // optional: defaults to 10ms
+            chunking: 'line', // optional: defaults to 'word'
+          }),
           tools: {
-            ...exposedTools,
+            ...tools,
             internal_getRelevantApps: getRelevantApps,
             internal_exposeTools: tool({
               description:
@@ -301,16 +193,83 @@ export async function POST(request: Request) {
                   .describe(`The key of the app to expose tools for`),
               }),
               execute: async ({ app }) => {
-                // Save the app key we are exposing tools for:
-                updateChatExposedToolsApp({
-                  chatId: id,
-                  app,
+                const token = await generateIntegrationAppCustomerAccessToken({
+                  id: session.user.id,
+                  name: session.user.name ?? '',
                 });
 
+                const integrationAppClient = new IntegrationAppClient({
+                  token,
+                });
+
+                const result = await integrationAppClient.connections.find({
+                  integrationKey: app,
+                });
+
+                const hasConnectionToApp = result.items.length > 0;
+
+                if (hasConnectionToApp) {
+                  await updateChatExposedToolsApp({
+                    chatId: id,
+                    app,
+                  });
+
+                  return {
+                    success: true,
+                    data: {
+                      app,
+                      text: `Thanks, I've exposed tools for ${app}`,
+                    },
+                  };
+                }
+
                 return {
-                  app,
-                  text: `Thanks, I've exposed tools for ${app}`,
+                  success: false,
+                  data: {
+                    app,
+                    text: `You don't have a connection to ${app}, connect to ${app} to expose tools`,
+                  },
                 };
+              },
+            }),
+            connectApp: tool({
+              description:
+                "Helps user to connect to an app when they don't have a connection to it, it renders a button to connect to the app, and sends a message called `done` when the user has connected to the app",
+              parameters: z.object({
+                app: z.string().describe('The key of the app to connect to'),
+              }),
+              execute: async ({ app }) => {
+                try {
+                  const token = await generateIntegrationAppCustomerAccessToken(
+                    {
+                      id: session.user.id,
+                      name: session.user.name ?? '',
+                    },
+                  );
+
+                  console.log('token', token);
+
+                  const integrationAppClient = new IntegrationAppClient({
+                    token,
+                  });
+
+                  const result = await integrationAppClient.integrations.find({
+                    search: app,
+                  });
+
+                  console.log('result', result);
+
+                  return {
+                    message: 'Waiting for user to connect to app',
+                    logoUri: result.items[0].logoUri ?? '',
+                    integrationKey: result.items[0].key,
+                  };
+                } catch (error) {
+                  console.error('Failed to prepare app for connection', error);
+                  return {
+                    message: 'Failed prepare app for connection',
+                  };
+                }
               },
             }),
           },
@@ -364,11 +323,15 @@ export async function POST(request: Request) {
         let appWeExposeToolsFor = null;
 
         for (const step of steps) {
-          appWeExposeToolsFor = step.toolResults.find(
+          const exposeToolResult = step.toolResults.find(
             (toolResult) => toolResult.toolName === 'internal_exposeTools',
-          )?.result.app;
+          )?.result;
 
-          if (appWeExposeToolsFor) {
+          if (exposeToolResult) {
+            if (exposeToolResult.success) {
+              appWeExposeToolsFor = exposeToolResult.data.app;
+            }
+
             break;
           }
         }
@@ -377,11 +340,10 @@ export async function POST(request: Request) {
           appWeExposeToolsFor &&
           appWeExposeToolsFor !== chat?.exposedToolsApp
         ) {
-          console.log('getAppsResult', appWeExposeToolsFor);
-
-          const derievedTools = await getTools(appWeExposeToolsFor);
-
-          console.log({ derievedTools });
+          const derivedTools = await getTools({
+            token,
+            app: appWeExposeToolsFor,
+          });
 
           //  set tools
           const result1 = streamText({
@@ -392,7 +354,7 @@ export async function POST(request: Request) {
             experimental_generateMessageId: generateUUID,
             toolCallStreaming: true,
             tools: {
-              ...derievedTools,
+              ...derivedTools,
             },
             onFinish: async ({ response }) => {
               try {
@@ -451,6 +413,7 @@ export async function POST(request: Request) {
     return new Response(stream);
     // }
   } catch (error) {
+    console.error('Error in chat route', error);
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }
@@ -520,36 +483,36 @@ export async function GET(request: Request) {
    * but the resumable stream has concluded at this point.
    */
   // if (!stream) {
-    const messages = await getMessagesByChatId({ id: chatId });
-    const mostRecentMessage = messages.at(-1);
+  const messages = await getMessagesByChatId({ id: chatId });
+  const mostRecentMessage = messages.at(-1);
 
-    if (!mostRecentMessage) {
-      return new Response(emptyDataStream, { status: 200 });
-    }
-
-    if (mostRecentMessage.role !== 'assistant') {
-      return new Response(emptyDataStream, { status: 200 });
-    }
-
-    const messageCreatedAt = new Date(mostRecentMessage.createdAt);
-
-    if (differenceInSeconds(resumeRequestedAt, messageCreatedAt) > 15) {
-      return new Response(emptyDataStream, { status: 200 });
-    }
-
-    const restoredStream = createDataStream({
-      execute: (buffer) => {
-        buffer.writeData({
-          type: 'append-message',
-          message: JSON.stringify(mostRecentMessage),
-        });
-      },
-    });
-
-    return new Response(restoredStream, { status: 200 });
+  if (!mostRecentMessage) {
+    return new Response(emptyDataStream, { status: 200 });
   }
 
-  // return new Response(stream, { status: 200 });
+  if (mostRecentMessage.role !== 'assistant') {
+    return new Response(emptyDataStream, { status: 200 });
+  }
+
+  const messageCreatedAt = new Date(mostRecentMessage.createdAt);
+
+  if (differenceInSeconds(resumeRequestedAt, messageCreatedAt) > 15) {
+    return new Response(emptyDataStream, { status: 200 });
+  }
+
+  const restoredStream = createDataStream({
+    execute: (buffer) => {
+      buffer.writeData({
+        type: 'append-message',
+        message: JSON.stringify(mostRecentMessage),
+      });
+    },
+  });
+
+  return new Response(restoredStream, { status: 200 });
+}
+
+// return new Response(stream, { status: 200 });
 // }
 
 export async function DELETE(request: Request) {
