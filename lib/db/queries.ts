@@ -33,6 +33,7 @@ import { generateUUID } from '../utils';
 import { generateHashedPassword } from './utils';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { ChatSDKError } from '../errors';
+import type { ExposedTool } from '../types';
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -471,22 +472,6 @@ export async function updateChatVisiblityById({
   }
 }
 
-export async function updateChatExposedToolsApp({
-  app, chatId
-}: {
-  app: string
-  chatId: string
-}) {
-  try {
-    return await db.update(chat).set({ exposedToolsApp: app }).where(eq(chat.id, chatId));
-  } catch (error) {
-    throw new ChatSDKError(
-      'bad_request:database',
-      'Failed to update chat exposed tools app',
-    );
-  }
-}
-
 export async function getMessageCountByUserId({
   id,
   differenceInHours,
@@ -551,6 +536,26 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to get stream ids by chat id',
+    );
+  }
+}
+
+export async function updateChatExposedTools({
+  chatId,
+  exposedTools,
+}: {
+  chatId: string;
+  exposedTools: ExposedTool[];
+}) {
+  try {
+    return await db
+      .update(chat)
+      .set({ exposedTools: JSON.stringify({ exposedTools }) })
+      .where(eq(chat.id, chatId));
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to update chat exposed tools',
     );
   }
 }

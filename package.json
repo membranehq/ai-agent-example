@@ -3,7 +3,7 @@
   "version": "3.0.23",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "tsx lib/db/migrate && next build",
     "build": "next build",
     "start": "next start",
     "lint": "next lint && biome lint --write --unsafe",
@@ -16,7 +16,8 @@
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
-    "test": "export PLAYWRIGHT=True && pnpm exec playwright test"
+    "test": "export PLAYWRIGHT=True && pnpm exec playwright test",
+    "pinecone:index-actions": "npx tsx lib/pinecone/index-actions.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
@@ -32,6 +33,7 @@
     "@integration-app/sdk": "^1.11.4",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/api-logs": "^0.200.0",
+    "@pinecone-database/pinecone": "^6.1.0",
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-dropdown-menu": "^2.1.2",

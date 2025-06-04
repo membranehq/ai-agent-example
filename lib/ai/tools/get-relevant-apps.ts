@@ -12,7 +12,11 @@ export const getRelevantApps = tool({
       .describe(
         `The name of apps that the user may be referring to all in lower case`,
       ),
-    query: z.string().describe(`Summary of action to be taken by the user`),
+    query: z
+      .string()
+      .describe(
+        `Summary of action to be taken by the user with app name included`,
+      ),
   }),
   execute: async ({ apps, query }) => {
     return {

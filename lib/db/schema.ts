@@ -29,7 +29,7 @@ export const chat = pgTable('Chat', {
   visibility: varchar('visibility', { enum: ['public', 'private'] })
     .notNull()
     .default('private'),
-  exposedToolsApp: varchar('exposedToolsApp', { length: 64 })
+  exposedTools: json('exposedTools')
 });
 
 export type Chat = InferSelectModel<typeof chat>;
