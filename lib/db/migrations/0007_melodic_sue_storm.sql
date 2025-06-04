@@ -1,1 +1,0 @@
-ALTER TABLE "Chat" ADD COLUMN "exposedToolsApp" varchar(64);
