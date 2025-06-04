@@ -104,7 +104,7 @@ export async function POST(request: Request) {
       ],
     });
 
-    const token = await generateIntegrationAppCustomerAccessToken({
+    const integrationAppCustomerAccessToken = await generateIntegrationAppCustomerAccessToken({
       id: session.user.id,
       name: session.user.name ?? '',
     });
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
 
     const tools = await actionIdsToTools({
       actionIds: exposedTools.map((tool) => tool.id),
-      token,
+      integrationAppCustomerAccessToken
     });
 
     const stream = createDataStream({
@@ -133,8 +133,8 @@ export async function POST(request: Request) {
           tools: {
             ...tools,
             internal_getRelevantApps: getRelevantApps,
-            internal_exposeTools: exposeTools(id, token),
-            connectApp: connectApp(token),
+            internal_exposeTools: exposeTools(id, integrationAppCustomerAccessToken),
+            connectApp: connectApp(integrationAppCustomerAccessToken),
           },
           onFinish: async ({ response }) => {
             if (session.user?.id) {
@@ -202,7 +202,7 @@ export async function POST(request: Request) {
         if (actionSuggestionsFromRun) {
           const derivedTools = await actionIdsToTools({
             actionIds: actionSuggestionsFromRun.map((action) => action.id),
-            token,
+            integrationAppCustomerAccessToken,
           });
 
           const result1 = streamText({
