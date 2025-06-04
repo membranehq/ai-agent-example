@@ -110,7 +110,7 @@ export async function POST(request: Request) {
     });
 
     const exposedTools =
-      ((chat?.exposedTools as any).exposedTools as ExposedTool[]) ?? [];
+      ((chat?.exposedTools as any)?.exposedTools as ExposedTool[]) ?? [];
 
     const tools = await actionIdsToTools({
       actionIds: exposedTools.map((tool) => tool.id),
@@ -203,6 +203,7 @@ export async function POST(request: Request) {
           const derivedTools = await actionIdsToTools({
             actionIds: actionSuggestionsFromRun.map((action) => action.id),
             integrationAppCustomerAccessToken,
+            includeConfigureTools: true,
           });
 
           const result1 = streamText({
