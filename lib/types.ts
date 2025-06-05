@@ -1,6 +1,6 @@
 export type DataPart = { type: 'append-message'; message: string };
 
-export type ExposedTool = {
+export type PineActionActionItem = {
   id: string;
   integrationName: string;
   key: string;

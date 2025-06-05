@@ -1,10 +1,9 @@
-import { Pinecone } from '@pinecone-database/pinecone';
-
 import { tool } from 'ai';
 import { z } from 'zod';
 import { IntegrationAppClient } from '@integration-app/sdk';
 import { updateChatExposedTools } from '@/lib/db/queries';
-import type { ExposedTool } from '@/lib/types';
+
+import { searchActions } from '@/lib/pinecone/search-actions';
 
 export const exposeTools = (chatId: string, token: string) =>
   tool({
@@ -15,7 +14,7 @@ export const exposeTools = (chatId: string, token: string) =>
       query: z
         .string()
         .describe(
-          `Summary of action to be taken by the user with app name included`,
+          `Summary of action to be taken by the user with app name(s) included`,
         ),
     }),
     execute: async ({ app, query }) => {
@@ -30,44 +29,19 @@ export const exposeTools = (chatId: string, token: string) =>
 
         const hasConnectionToApp = result.items.length > 0;
 
-        const pc = new Pinecone({
-          apiKey: process.env.PINECONE_API_KEY as string,
-        });
-
-        const index = pc.index(process.env.PINECONE_TOOLS_INDEX_NAME as string);
-
-        const results = (await index.searchRecords({
-          fields: ['*'],
-          query: {
-            topK: 10,
-            inputs: { text: query },
-          },
-        })) as {
-          result: {
-            hits: {
-              _id: string;
-              _score: number;
-              fields: Exclude<ExposedTool, 'id'>;
-            }[];
-          };
-        };
-
-        const exposedTools = results.result.hits.map((hit) => ({
-          ...hit.fields,
-          id: hit._id,
-        }));
+        const exposedTools = await searchActions(query, 1);
 
         if (hasConnectionToApp) {
           await updateChatExposedTools({
             chatId,
-            exposedTools,
+            actionIds: exposedTools.map((tool) => tool.id),
           });
 
           return {
             success: true,
             data: {
               text: `Thanks, I've exposed tools for ${app}`,
-              exposedTools,
+              toolIds: exposedTools.map((tool) => tool.id),
             },
           };
         }

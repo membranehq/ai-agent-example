@@ -33,7 +33,6 @@ import { generateUUID } from '../utils';
 import { generateHashedPassword } from './utils';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { ChatSDKError } from '../errors';
-import type { ExposedTool } from '../types';
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -542,15 +541,15 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
 
 export async function updateChatExposedTools({
   chatId,
-  exposedTools,
+  actionIds,
 }: {
   chatId: string;
-  exposedTools: ExposedTool[];
+  actionIds: string[];
 }) {
   try {
     return await db
       .update(chat)
-      .set({ exposedTools: JSON.stringify({ exposedTools }) })
+      .set({ exposedTools: { actionIds } })
       .where(eq(chat.id, chatId));
   } catch (error) {
     throw new ChatSDKError(

@@ -28,7 +28,6 @@ import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app
 import { getRelevantApps } from '@/lib/ai/tools/get-relevant-apps';
 import { exposeTools } from '@/lib/ai/tools/expose-tools';
 import { connectApp } from '@/lib/ai/tools/connect-app';
-import type { ExposedTool } from '@/lib/types';
 import { actionIdsToTools } from '@/lib/actionIds-to-tools';
 
 export const maxDuration = 60;
@@ -104,18 +103,21 @@ export async function POST(request: Request) {
       ],
     });
 
-    const integrationAppCustomerAccessToken = await generateIntegrationAppCustomerAccessToken({
-      id: session.user.id,
-      name: session.user.name ?? '',
-    });
+    const integrationAppCustomerAccessToken =
+      await generateIntegrationAppCustomerAccessToken({
+        id: session.user.id,
+        name: session.user.name ?? '',
+      });
 
-    const exposedTools =
-      ((chat?.exposedTools as any)?.exposedTools as ExposedTool[]) ?? [];
+    const actionIds =
+      ((chat?.exposedTools as any)?.actionIds as string[]) ?? [];
 
     const tools = await actionIdsToTools({
-      actionIds: exposedTools.map((tool) => tool.id),
-      integrationAppCustomerAccessToken
+      actionIds: actionIds,
+      integrationAppCustomerAccessToken,
     });
+
+    console.log('tools', tools);
 
     const stream = createDataStream({
       execute: async (dataStream) => {
@@ -130,10 +132,17 @@ export async function POST(request: Request) {
             delayInMs: 20, // optional: defaults to 10ms
             chunking: 'line', // optional: defaults to 'word'
           }),
+          onError: (error) => {
+            console.error('RESULT1: Error in chat route');
+            console.error(error);
+          },
           tools: {
             ...tools,
             internal_getRelevantApps: getRelevantApps,
-            internal_exposeTools: exposeTools(id, integrationAppCustomerAccessToken),
+            internal_exposeTools: exposeTools(
+              id,
+              integrationAppCustomerAccessToken,
+            ),
             connectApp: connectApp(integrationAppCustomerAccessToken),
           },
           onFinish: async ({ response }) => {
@@ -183,7 +192,7 @@ export async function POST(request: Request) {
 
         const steps = await result.steps;
 
-        let actionSuggestionsFromRun: ExposedTool[] | undefined;
+        let suggestedActionIds: string[] | undefined;
 
         for (const step of steps) {
           const exposeToolResult = step.toolResults.find(
@@ -192,19 +201,23 @@ export async function POST(request: Request) {
 
           if (exposeToolResult) {
             if (exposeToolResult.success) {
-              actionSuggestionsFromRun = exposeToolResult.data.exposedTools;
+              suggestedActionIds = exposeToolResult.data.toolIds;
             }
 
             break;
           }
         }
 
-        if (actionSuggestionsFromRun) {
+        console.log('suggestedActionIds', suggestedActionIds);
+
+        if (suggestedActionIds) {
           const derivedTools = await actionIdsToTools({
-            actionIds: actionSuggestionsFromRun.map((action) => action.id),
+            actionIds: suggestedActionIds,
             integrationAppCustomerAccessToken,
             includeConfigureTools: true,
           });
+
+          console.log('derivedTools', derivedTools);
 
           const result1 = streamText({
             model: myProvider.languageModel(selectedChatModel),
@@ -215,6 +228,9 @@ export async function POST(request: Request) {
             toolCallStreaming: true,
             tools: {
               ...derivedTools,
+            },
+            onError: (error) => {
+              console.error('RESULT2: Error in chat route', error);
             },
             onFinish: async ({ response }) => {
               try {
