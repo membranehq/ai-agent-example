@@ -8,14 +8,17 @@ import { searchActions } from '@/lib/pinecone/search-actions';
 export const exposeTools = (chatId: string, token: string) =>
   tool({
     description:
-      'Expose tools for the selected app. This tool is called after we have found the relevant apps and the user has selected the app to use or we have found a single relevant app',
+      'Expose tools for the selected app.',
     parameters: z.object({
       app: z.string().describe(`The key of the app to expose tools for`),
       query: z
-        .string()
-        .describe(
-          `Summary of action to be taken by the user with app name(s) included`,
-        ),
+      .string()
+      .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query
+        E.g for "Can you send an email" the query should be "send an email"
+        E.g for create a page on notion the query should be "notion: create a page"
+        E.g for "Can you send an email to jude@gmail" the query should be "gmail: send an email"
+        E.g for "What events do I have on google calendar" the query should be "google-calendar: get events"
+      `),
     }),
     execute: async ({ app, query }) => {
       try {
@@ -29,19 +32,25 @@ export const exposeTools = (chatId: string, token: string) =>
 
         const hasConnectionToApp = result.items.length > 0;
 
-        const exposedTools = await searchActions(query, 1);
+        const searchActionResult = await searchActions(query, 1);
+
+        console.log('searchActionResult', searchActionResult);
 
         if (hasConnectionToApp) {
           await updateChatExposedTools({
             chatId,
-            actionIds: exposedTools.map((tool) => tool.id),
+            actionIds: searchActionResult.map((tool) => tool.id),
           });
 
           return {
             success: true,
             data: {
-              text: `Thanks, I've exposed tools for ${app}`,
-              toolIds: exposedTools.map((tool) => tool.id),
+              text: `Thanks, I've exposed tools for ${app}, don't say anything else`,
+              /*
+                List of related actions to the user's query
+                naming it internal_hash here to prevent llm from trying to use it.
+               */
+              internal_hash: searchActionResult.map((action) => action.id),
             },
           };
         }

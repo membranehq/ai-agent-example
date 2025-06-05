@@ -15,6 +15,7 @@ interface ActionIdsToToolsProps {
   includeConfigureTools?: boolean;
 }
 
+
 export async function actionIdsToTools({
   actionIds,
   integrationAppCustomerAccessToken,
@@ -45,7 +46,8 @@ export async function actionIdsToTools({
       description: action.name,
       parameters: inputSchema,
       execute: async (args) => {
-        const result = await integrationAppClient
+        try {
+          const result = await integrationAppClient
           .actionInstance({
             autoCreate: true,
             integrationKey: action.integration?.key,
@@ -61,6 +63,18 @@ export async function actionIdsToTools({
             },
           ],
         };
+        } catch (error) {
+          console.error('Error calling action', error);
+          return {
+            content: [
+              {
+                type: 'text',
+                text: 'Error calling action',
+              },
+            ],
+          };
+        }
+        
       },
     });
 

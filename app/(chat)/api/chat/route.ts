@@ -112,10 +112,15 @@ export async function POST(request: Request) {
     const actionIds =
       ((chat?.exposedTools as any)?.actionIds as string[]) ?? [];
 
-    const tools = await actionIdsToTools({
+    const exposedTools = await actionIdsToTools({
       actionIds: actionIds,
       integrationAppCustomerAccessToken,
+      includeConfigureTools: false,
     });
+
+    console.log('exposedTools', exposedTools);
+
+    console.log('messages', JSON.stringify(messages, null, 2));
 
     const stream = createDataStream({
       execute: async (dataStream) => {
@@ -135,7 +140,7 @@ export async function POST(request: Request) {
             console.log(error);
           },
           tools: {
-            ...tools,
+            ...exposedTools,
             internal_getRelevantApps: getRelevantApps,
             internal_exposeTools: exposeTools(
               id,
@@ -199,23 +204,40 @@ export async function POST(request: Request) {
 
           if (exposeToolResult) {
             if (exposeToolResult.success) {
-              suggestedActionIds = exposeToolResult.data.toolIds;
+              suggestedActionIds = exposeToolResult.data.internal_hash;
             }
 
             break;
           }
         }
 
+        console.log('suggestedActionIds', suggestedActionIds);
+
         if (suggestedActionIds) {
           const derivedTools = await actionIdsToTools({
             actionIds: suggestedActionIds,
             integrationAppCustomerAccessToken,
-            includeConfigureTools: true,
+            includeConfigureTools: false,
           });
+
+          console.log('derivedTools', derivedTools);
+
+          const previousMessages = await getMessagesByChatId({ id });
+
+          const messages = appendClientMessage({
+            // @ts-expect-error: todo add type conversion from DBMessage[] to UIMessage[]
+            messages: previousMessages,
+            // message,
+          });
+
+          console.log('messages-stream2', messages);
 
           const result1 = streamText({
             model: myProvider.languageModel(selectedChatModel),
-            system: `You're a friendly task assistant, based on these messages, call the appropriate tool to perform the task specified by the user`,
+            system: `
+              You're a friendly task assistant, based on task user is trying to perform specified in the messages, call the appropriate tool from this list: 
+              ${Object.keys(derivedTools).join(', ')} to perform the task specified by the user
+            `,
             messages,
             maxSteps: 5,
             experimental_generateMessageId: generateUUID,
