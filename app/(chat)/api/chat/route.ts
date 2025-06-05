@@ -118,9 +118,9 @@ export async function POST(request: Request) {
       includeConfigureTools: false,
     });
 
-    console.log('exposedTools', exposedTools);
+    // console.log('exposedTools', exposedTools);
 
-    console.log('messages', JSON.stringify(messages, null, 2));
+    // console.log('messages', JSON.stringify(messages, null, 2));
 
     const stream = createDataStream({
       execute: async (dataStream) => {

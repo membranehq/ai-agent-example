@@ -13,30 +13,40 @@ export const getRelevantApps = tool({
       .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query
         E.g for "Can you send an email" the query should be "send an email"
         E.g for create a page on notion the query should be "notion: create a page"
-        E.g for "Can you send an email to jude@gmail" the query should be "gmail: send an email"
+        E.g for "Can you send an email to jude@gmail" the query should be "send an email"
         E.g for "What events do I have on google calendar" the query should be "google-calendar: get events"
+        E.g for "Where are my contacts" the query should be "get contacts"
       `),
   }),
   execute: async ({ query }) => {
-    /**
-     * Check to if the app is supported
-     */
-    const appName = query.split(':')[0]?.trim();
-    
-    if(appName) {
-      const searchActionResult = await searchActions(query, 1);
-      const hasExactAppMatch = searchActionResult.some(action => action.integrationName === appName);
 
-      if(hasExactAppMatch) {
-        return `Yes, we support ${appName}`
+    const appName = query.split(':')[0]?.trim();
+
+    const searchActionResult = await searchActions(query, 1);
+
+    const appNameIsExactMatch = searchActionResult.some(action => action.integrationName === appName);
+
+    if(appName && appNameIsExactMatch) {
+      return {
+        apps: [appName],
+        answer: `Proceeding with ${appName}`,
       }
-      
-      return `No, we don't support ${appName}`
+    }
+    
+    if(appName && !appNameIsExactMatch) {
+      return {
+        apps: searchActionResult.map(action => action.integrationName),
+        answer: `I couldn't find a match for ${appName}, Do you mean ${searchActionResult.map(action => action.integrationName).join(', ')}?`,
+      }
     }
 
-    const searchActionResult = await searchActions(query, 5);
-   
-
-    return `Based on your prompt, "${query}", I found these relevant apps: ${searchActionResult.map(action => action.integrationName).join(', ')}, Please select which ones you'd like to use.`
+    const apps = searchActionResult.map(action => action.integrationName);
+    
+    const answer = `Based on your prompt, "${query}", I found these relevant apps: ${apps.join(', ')}, Please select which ones you'd like to use.`;
+    
+    return {
+      apps,
+      answer,
+    };
   },
 });
