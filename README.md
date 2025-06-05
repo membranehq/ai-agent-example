@@ -1,25 +1,57 @@
+### Integration App AI Agent
 
+This is an example of an AI agent that uses the Integration App to provide integration capabilities to user via tools.
 
-## Features
+#### Prerequisites
 
-- [Next.js](https://nextjs.org) App Router
-  - Advanced routing for seamless navigation and performance
-  - React Server Components (RSCs) and Server Actions for server-side rendering and increased performance
-- [AI SDK](https://sdk.vercel.ai/docs)
-  - Unified API for generating text, structured objects, and tool calls with LLMs
-  - Hooks for building dynamic chat and generative user interfaces
-  - Supports xAI (default), OpenAI, Fireworks, and other model providers
-- [shadcn/ui](https://ui.shadcn.com)
-  - Styling with [Tailwind CSS](https://tailwindcss.com)
-  - Component primitives from [Radix UI](https://radix-ui.com) for accessibility and flexibility
-- Data Persistence
-  - [Neon Serverless Postgres](https://vercel.com/marketplace/neon) for saving chat history and user data
-  - [Vercel Blob](https://vercel.com/storage/blob) for efficient file storage
-- [Auth.js](https://authjs.dev)
-  - Simple and secure authentication
+- [Integration App](https://integration-app.com/): To provide AI agent with Integration capabilities.
 
-## Model Providers
+- [Pinecone](https://www.pinecone.io/): A vector database for storing and querying embeddings. We used this to store data about all available tools based on actions defined in your integration app workspace.
 
-This template ships with [xAI](https://x.ai) `grok-2-1212` as the default chat model. However, with the [AI SDK](https://sdk.vercel.ai/docs), you can switch LLM providers to [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://sdk.vercel.ai/providers/ai-sdk-providers) with just a few lines of code.
+- [Claude](https://www.anthropic.com/): This project uses Claude as the LLM provider but you can use any other LLM provider. see details on how to use other LLM providers [here](https://sdk.vercel.ai/providers/ai-sdk-providers).
 
+- [Postgres Database](https://www.postgresql.org/): This project uses Postgres to store chats, you can use any postgres database of choice.
 
+#### Setup Guide
+
+1. Clone the repository
+
+```bash
+git clone https://github.com/integration-app/ai-agent.git
+```
+
+2. Install dependencies using
+
+```bash
+
+pnpm install
+```
+
+3. Copy the environment variables from `.env.example` to `.env` and fill in the values.
+
+```bash
+cp .env.example .env
+```
+
+4. Push migrations to the database using
+
+```bash
+pnpm db:push
+
+```
+
+5. Create a new index in pinecone. See details on how to create an index on pinecone [here](https://docs.pinecone.io/reference/create_index). Once you have created the index, add the index name to the `PINECONE_INDEX_NAME` environment variable and run the following command to index your actions.
+
+```bash
+pnpm pinecone:index-actions
+```
+
+6. Run the development server
+
+```bash
+pnpm dev
+```
+
+### Notes
+
+**Gradual tools exposure**
