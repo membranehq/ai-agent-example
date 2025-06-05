@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { memo, useState } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import { DocumentToolCall, DocumentToolResult } from './document';
-import { PencilEditIcon, SparklesIcon } from './icons';
+import { PencilEditIcon, SparklesIcon, LoaderIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
@@ -193,8 +193,11 @@ const PurePreviewMessage = ({
                             isReadonly={isReadonly}
                           />
                         ) : (
-                          <div className="text-muted-foreground">
-                            Calling {toolName}...
+                          <div className="text-muted-foreground flex items-center gap-2">
+                            <div className="animate-spin">
+                              <LoaderIcon size={14} />
+                            </div>
+                            <span>Running {toolName}...</span>
                           </div>
                         )}
                       </div>
@@ -238,9 +241,14 @@ const PurePreviewMessage = ({
                           />
                         ) : (
                           <div className="bg-muted p-4 rounded-lg">
-                            <pre className="text-sm overflow-x-auto">
-                              {JSON.stringify(result, null, 2)}
-                            </pre>
+                            <details className="group">
+                              <summary className="cursor-pointer text-sm text-muted-foreground mb-2 hover:text-foreground">
+                                See more
+                              </summary>
+                              <pre className="text-sm overflow-x-auto mt-2">
+                                {JSON.stringify(result, null, 2)}
+                              </pre>
+                            </details>
                           </div>
                         )}
                       </div>
