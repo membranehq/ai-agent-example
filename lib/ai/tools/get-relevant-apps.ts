@@ -20,7 +20,7 @@ export const getRelevantApps = tool({
   }),
   execute: async ({ query }) => {
 
-    const appName = query.split(':')[0]?.trim();
+    const appName = query.includes(':') ? query.split(':')[0]?.trim() : null;
 
     const searchActionResult = await searchActions(query, 1);
 
