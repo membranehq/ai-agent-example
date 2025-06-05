@@ -5,12 +5,12 @@ import { updateChatExposedTools } from '@/lib/db/queries';
 
 import { searchActions } from '@/lib/pinecone/search-actions';
 
-export const exposeTools = (chatId: string, token: string) =>
+export const getActions = (chatId: string, token: string) =>
   tool({
     description:
-      'Expose tools for the selected app.',
+      'Get actions for the selected app.',
     parameters: z.object({
-      app: z.string().describe(`The key of the app to expose tools for`),
+      app: z.string().describe(`The key of the app to get actions for`),
       query: z
       .string()
       .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query
@@ -33,7 +33,7 @@ export const exposeTools = (chatId: string, token: string) =>
 
         const hasConnectionToApp = result.items.length > 0;
 
-        const searchActionResult = await searchActions(query, 1);
+        const searchActionResult = await searchActions(query, 1, app);
 
         console.log('searchActionResult', searchActionResult);
 
@@ -46,7 +46,6 @@ export const exposeTools = (chatId: string, token: string) =>
           return {
             success: true,
             data: {
-              text: `Thanks, I've exposed tools for ${app}, don't say anything else`,
               /*
                 List of related actions to the user's query
                 naming it internal_hash here to prevent llm from trying to use it.
@@ -60,15 +59,15 @@ export const exposeTools = (chatId: string, token: string) =>
           success: false,
           data: {
             app,
-            text: `You don't have a connection to ${app}, connect to ${app} to expose tools`,
+            text: `You don't have a connection to ${app}, connect to ${app} to get actions`,
           },
         };
       } catch (error) {
-        console.error('Failed to expose tools', error);
+        console.error('Failed to get actions', error);
         return {
           success: false,
           data: {
-            error: 'Failed to expose tools due to an internal error',
+            error: 'Failed to get actions due to an internal error',
           },
         };
       }

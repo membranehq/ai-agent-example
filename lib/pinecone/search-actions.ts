@@ -1,7 +1,7 @@
 import { Pinecone } from '@pinecone-database/pinecone';
 import type { PineActionActionItem } from '../types';
 
-export async function searchActions(query: string, topK = 10) {
+export async function searchActions(query: string, topK = 10, appName?: string) {
   const pc = new Pinecone({
     apiKey: process.env.PINECONE_API_KEY as string,
   });
@@ -13,6 +13,13 @@ export async function searchActions(query: string, topK = 10) {
     query: {
       topK,
       inputs: { text: query },
+      ...(appName ? {
+        filter: {
+          integrationName: {
+            $eq: appName
+          },
+        },
+      } : {}),
     },
   })) as {
     result: {

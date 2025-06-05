@@ -26,7 +26,7 @@ import { differenceInSeconds } from 'date-fns';
 import { ChatSDKError } from '@/lib/errors';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
 import { getRelevantApps } from '@/lib/ai/tools/get-relevant-apps';
-import { exposeTools } from '@/lib/ai/tools/expose-tools';
+import { getActions } from '@/lib/ai/tools/expose-tools';
 import { connectApp } from '@/lib/ai/tools/connect-app';
 import { actionIdsToTools } from '@/lib/actionIds-to-tools';
 
@@ -141,8 +141,8 @@ export async function POST(request: Request) {
           },
           tools: {
             ...exposedTools,
-            internal_getRelevantApps: getRelevantApps,
-            internal_exposeTools: exposeTools(
+            getRelevantApps: getRelevantApps,
+            getActions: getActions(
               id,
               integrationAppCustomerAccessToken,
             ),
@@ -199,7 +199,7 @@ export async function POST(request: Request) {
 
         for (const step of steps) {
           const exposeToolResult = step.toolResults.find(
-            (toolResult) => toolResult.toolName === 'internal_exposeTools',
+            (toolResult) => toolResult.toolName === 'getActions',
           )?.result;
 
           if (exposeToolResult) {
@@ -211,26 +211,12 @@ export async function POST(request: Request) {
           }
         }
 
-        console.log('suggestedActionIds', suggestedActionIds);
-
         if (suggestedActionIds) {
           const derivedTools = await actionIdsToTools({
             actionIds: suggestedActionIds,
             integrationAppCustomerAccessToken,
             includeConfigureTools: false,
           });
-
-          console.log('derivedTools', derivedTools);
-
-          const previousMessages = await getMessagesByChatId({ id });
-
-          const messages = appendClientMessage({
-            // @ts-expect-error: todo add type conversion from DBMessage[] to UIMessage[]
-            messages: previousMessages,
-            // message,
-          });
-
-          console.log('messages-stream2', messages);
 
           const result1 = streamText({
             model: myProvider.languageModel(selectedChatModel),

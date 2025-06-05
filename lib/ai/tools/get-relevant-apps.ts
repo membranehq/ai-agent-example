@@ -22,7 +22,7 @@ export const getRelevantApps = tool({
 
     const appName = query.includes(':') ? query.split(':')[0]?.trim() : null;
 
-    const searchActionResult = await searchActions(query, 1);
+    const searchActionResult = await searchActions(query, 10);
 
     const appNameIsExactMatch = searchActionResult.some(action => action.integrationName === appName);
 
