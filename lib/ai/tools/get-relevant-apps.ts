@@ -32,16 +32,16 @@ export const getRelevantApps = tool({
         answer: `Proceeding with ${appName}`,
       }
     }
+
+    const apps = Array.from(new Set(searchActionResult.map(action => action.integrationName)));
     
     if(appName && !appNameIsExactMatch) {
       return {
-        apps: searchActionResult.map(action => action.integrationName),
-        answer: `I couldn't find a match for ${appName}, Do you mean ${searchActionResult.map(action => action.integrationName).join(', ')}?`,
+        apps,
+        answer: `I couldn't find a match for ${appName}, Do you mean ${apps.join(', ')}?`,
       }
     }
 
-    const apps = searchActionResult.map(action => action.integrationName);
-    
     const answer = `Based on your prompt, "${query}", I found these relevant apps: ${apps.join(', ')}, Please select which ones you'd like to use.`;
     
     return {
