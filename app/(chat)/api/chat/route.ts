@@ -117,8 +117,6 @@ export async function POST(request: Request) {
       integrationAppCustomerAccessToken,
     });
 
-    console.log('tools', tools);
-
     const stream = createDataStream({
       execute: async (dataStream) => {
         const result = streamText({
@@ -134,7 +132,7 @@ export async function POST(request: Request) {
           }),
           onError: (error) => {
             console.error('RESULT1: Error in chat route');
-            console.error(error);
+            console.log(error);
           },
           tools: {
             ...tools,
@@ -208,16 +206,12 @@ export async function POST(request: Request) {
           }
         }
 
-        console.log('suggestedActionIds', suggestedActionIds);
-
         if (suggestedActionIds) {
           const derivedTools = await actionIdsToTools({
             actionIds: suggestedActionIds,
             integrationAppCustomerAccessToken,
             includeConfigureTools: true,
           });
-
-          console.log('derivedTools', derivedTools);
 
           const result1 = streamText({
             model: myProvider.languageModel(selectedChatModel),
@@ -230,7 +224,8 @@ export async function POST(request: Request) {
               ...derivedTools,
             },
             onError: (error) => {
-              console.error('RESULT2: Error in chat route', error);
+              console.error('RESULT2: Error in chat route');
+              console.error(error);
             },
             onFinish: async ({ response }) => {
               try {

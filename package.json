@@ -29,6 +29,7 @@
     "@codemirror/state": "^6.5.0",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.35.3",
+    "@dmitryrechkin/json-schema-to-zod": "^1.0.1",
     "@integration-app/react": "^2.17.1",
     "@integration-app/sdk": "^1.11.4",
     "@opentelemetry/api": "^1.9.0",

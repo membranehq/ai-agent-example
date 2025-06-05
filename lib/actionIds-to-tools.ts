@@ -1,7 +1,7 @@
 import { IntegrationAppClient } from '@integration-app/sdk';
-import { zodFromJsonSchema } from '@/lib/zod-helpers';
-import type { ZodRawShape } from 'zod';
-import type { Tool } from 'ai';
+import { JSONSchemaToZod } from '@dmitryrechkin/json-schema-to-zod';
+import { z, type ZodRawShape } from 'zod';
+import { type Tool, tool } from 'ai';
 
 /**
  * TODO: MOVE to MCP SERVER
@@ -39,11 +39,9 @@ export async function actionIdsToTools({
 
     if (!action) continue;
 
-    const inputSchema = zodFromJsonSchema(
-      action.inputSchema,
-    ) as unknown as ZodRawShape;
+    const inputSchema = JSONSchemaToZod.convert(action.inputSchema ?? {});
 
-    tools[action.key] = {
+    tools[action.key] = tool({
       description: action.name,
       parameters: inputSchema,
       execute: async (args) => {
@@ -64,30 +62,20 @@ export async function actionIdsToTools({
           ],
         };
       },
-    };
+    });
 
     // If includeConfigureTools is true and the action is a create action, add a configuration tool
     if (includeConfigureTools && action.key.startsWith('create-')) {
       const configureToolKey = `configure__${action.key}`;
-      tools[configureToolKey] = {
+      tools[configureToolKey] = tool({
         description: `Configure ${action.name}`,
-        parameters: inputSchema,
+        parameters: z.object({}),
         execute: async () => {
-          // Return the input schema for UI rendering
           return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify({
-                  schema: action.inputSchema,
-                  actionKey: action.key,
-                  actionName: action.name,
-                }),
-              },
-            ],
+            schema: action.inputSchema,
           };
         },
-      };
+      });
     }
   }
 
