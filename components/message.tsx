@@ -210,9 +210,13 @@ const PurePreviewMessage = ({
 
                   return (
                     <div key={toolCallId}>
-                      <div className="text-sm text-muted-foreground mb-2">
-                        {toolName}
-                      </div>
+                      {!['getActions', 'getRelevantApps'].includes(
+                        toolName,
+                      ) && (
+                        <div className="text-sm text-muted-foreground mb-2">
+                          {toolName}
+                        </div>
+                      )}
                       <div className="transition-all duration-300">
                         {toolName === 'getWeather' ? (
                           <Weather weatherAtLocation={result} />
