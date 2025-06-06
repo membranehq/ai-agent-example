@@ -1,20 +1,16 @@
 'use client';
 import Image from 'next/image';
 import type { User } from 'next-auth';
-import { signOut, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
-import { Moon, Sun, LogOut, User as UserIcon } from 'lucide-react';
+import { Moon, Sun, User as UserIcon } from 'lucide-react';
 
 import {
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuContent, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { toast } from './toast';
 import { guestRegex } from '@/lib/constants';
 
 export function HeaderUserNav({ user }: { user: User }) {
@@ -28,14 +24,14 @@ export function HeaderUserNav({ user }: { user: User }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {status === 'loading' ? (
-          <Button variant="ghost" className="h-12 w-12 p-0">
+          <Button variant="ghost" className="size-12 p-0">
             <div className="size-8 bg-zinc-500/30 rounded-full animate-pulse" />
           </Button>
         ) : (
           <Button
             variant="ghost"
             data-testid="user-nav-button"
-            className="h-12 w-12 p-0"
+            className="size-12 p-0"
           >
             <Image
               src={`https://avatar.vercel.sh/${user.email}`}
@@ -63,7 +59,7 @@ export function HeaderUserNav({ user }: { user: User }) {
               className="rounded-full ring-2 ring-primary/10"
             />
             <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1">
-              <UserIcon className="h-3 w-3" />
+              <UserIcon className="size-3" />
             </div>
           </div>
           <div className="space-y-0.5 px-4">
@@ -75,13 +71,13 @@ export function HeaderUserNav({ user }: { user: User }) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="size-8"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
             {theme === 'light' ? (
-              <Moon className="h-4 w-4" />
+              <Moon className="size-4" />
             ) : (
-              <Sun className="h-4 w-4" />
+              <Sun className="size-4" />
             )}
           </Button>
         </div>

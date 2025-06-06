@@ -51,7 +51,7 @@ function PureSuggestedActions({
           exit={{ opacity: 0, x: 20 }}
           transition={{ delay: 0.05 * index }}
           key={`suggested-action-${suggestedAction.title}-${index}`}
-          className="flex-shrink-0"
+          className="shrink-0"
         >
           <Button
             variant="ghost"

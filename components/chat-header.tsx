@@ -14,8 +14,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { type VisibilityType, VisibilitySelector } from './visibility-selector';
 import type { Session } from 'next-auth';
 import {
-  ConnectionModal,
-  IntegrationList,
+  ConnectionModal
 } from '@/components/integration-app/manage-integrations';
 import { HeaderUserNav } from './header-user-nav';
 
