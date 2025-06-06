@@ -88,7 +88,7 @@ export function HeaderUserNav({ user }: { user: User }) {
        
         <div className="px-3 py-2 mt-2 border-t">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            We use your id, name and email to generate an access token that
+            We use your id, name to generate an access token that
             allows integrations to run on your behalf. For more details, see the{' '}
             <a
               href="https://console.integration.app/docs/getting-started/authentication#authentication"
