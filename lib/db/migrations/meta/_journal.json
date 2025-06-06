@@ -8,6 +8,13 @@
       "when": 1749074861090,
       "tag": "0000_foamy_cassandra_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1749214681103,
+      "tag": "0001_typical_swordsman",
+      "breakpoints": true
     }
   ]
 }
