@@ -1,10 +1,9 @@
 'use client';
-
-import { ChevronUp } from 'lucide-react';
 import Image from 'next/image';
 import type { User } from 'next-auth';
 import { signOut, useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
+import { Moon, Sun, LogOut, User as UserIcon } from 'lucide-react';
 
 import {
   DropdownMenu,
@@ -16,7 +15,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { toast } from './toast';
-import { LoaderIcon } from './icons';
 import { guestRegex } from '@/lib/constants';
 
 export function HeaderUserNav({ user }: { user: User }) {
@@ -30,10 +28,7 @@ export function HeaderUserNav({ user }: { user: User }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {status === 'loading' ? (
-          <Button
-            variant="ghost"
-            className="h-12 w-12 p-0"
-          >
+          <Button variant="ghost" className="h-12 w-12 p-0">
             <div className="size-8 bg-zinc-500/30 rounded-full animate-pulse" />
           </Button>
         ) : (
@@ -56,43 +51,57 @@ export function HeaderUserNav({ user }: { user: User }) {
         data-testid="user-nav-menu"
         side="bottom"
         align="end"
+        className="w-64 pt-4"
       >
-        <DropdownMenuItem
-          data-testid="user-nav-item-theme"
-          className="cursor-pointer"
-          onSelect={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        >
-          {`Toggle ${theme === 'light' ? 'dark' : 'light'} mode`}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild data-testid="user-nav-item-auth">
-          <button
-            type="button"
-            className="w-full cursor-pointer"
-            onClick={() => {
-              if (status === 'loading') {
-                toast({
-                  type: 'error',
-                  description:
-                    'Checking authentication status, please try again!',
-                });
-
-                return;
-              }
-
-              if (isGuest) {
-                router.push('/login');
-              } else {
-                signOut({
-                  redirectTo: '/',
-                });
-              }
-            }}
+        <div className="flex flex-col items-center text-center mb-4">
+          <div className="relative mb-3">
+            <Image
+              src={`https://avatar.vercel.sh/${user.email}`}
+              alt={user.email ?? 'User Avatar'}
+              width={64}
+              height={64}
+              className="rounded-full ring-2 ring-primary/10"
+            />
+            <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1">
+              <UserIcon className="h-3 w-3" />
+            </div>
+          </div>
+          <div className="space-y-0.5 px-4">
+            <h4 className="font-semibold text-base">{user.name || 'User'}</h4>
+            <p className="text-xs text-muted-foreground">{user.email}</p>
+          </div>
+        </div>
+        <div className="absolute top-3 right-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
-            {isGuest ? 'Login to your account' : 'Sign out'}
-          </button>
-        </DropdownMenuItem>
+            {theme === 'light' ? (
+              <Moon className="h-4 w-4" />
+            ) : (
+              <Sun className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+       
+        <div className="px-3 py-2 mt-2 border-t">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            We use your id, name and email to generate an access token that
+            allows integrations to run on your behalf. For more details, see the{' '}
+            <a
+              href="https://console.integration.app/docs/getting-started/authentication#authentication"
+              className="text-primary hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Integration App Authentication documentation
+            </a>
+            .
+          </p>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
-} 
+}
