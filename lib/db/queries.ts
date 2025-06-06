@@ -14,6 +14,12 @@ import {
 } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import {
+  uniqueNamesGenerator,
+  adjectives,
+  colors,
+  animals,
+} from 'unique-names-generator';
 
 import {
   user,
@@ -55,23 +61,35 @@ export async function getUser(email: string): Promise<Array<User>> {
 
 export async function createUser(email: string, password: string) {
   const hashedPassword = generateHashedPassword(password);
+  const randomName = uniqueNamesGenerator({
+    dictionaries: [adjectives, colors, animals],
+  });
 
   try {
-    return await db.insert(user).values({ email, password: hashedPassword });
+    return await db
+      .insert(user)
+      .values({ email, password: hashedPassword, name: randomName });
   } catch (error) {
     throw new ChatSDKError('bad_request:database', 'Failed to create user');
   }
 }
 
 export async function createGuestUser() {
-  const email = `guest-${Date.now()}`;
+  const email = `guest-${Date.now()}@email.com`;
   const password = generateHashedPassword(generateUUID());
+  const randomName = uniqueNamesGenerator({
+    dictionaries: [adjectives, colors, animals],
+  });
 
   try {
-    return await db.insert(user).values({ email, password }).returning({
-      id: user.id,
-      email: user.email,
-    });
+    return await db
+      .insert(user)
+      .values({ email, password, name: randomName })
+      .returning({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      });
   } catch (error) {
     throw new ChatSDKError(
       'bad_request:database',
