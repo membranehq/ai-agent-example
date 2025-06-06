@@ -168,38 +168,13 @@ const PurePreviewMessage = ({
                       <div className="text-sm text-muted-foreground mb-2">
                         {toolName}
                       </div>
-                      <div
-                        className={cx('animate-pulse', {
-                          skeleton: ['getWeather'].includes(toolName),
-                        })}
-                      >
-                        {toolName === 'getWeather' ? (
-                          <Weather />
-                        ) : toolName === 'createDocument' ? (
-                          <DocumentPreview
-                            isReadonly={isReadonly}
-                            args={args}
-                          />
-                        ) : toolName === 'updateDocument' ? (
-                          <DocumentToolCall
-                            type="update"
-                            args={args}
-                            isReadonly={isReadonly}
-                          />
-                        ) : toolName === 'requestSuggestions' ? (
-                          <DocumentToolCall
-                            type="request-suggestions"
-                            args={args}
-                            isReadonly={isReadonly}
-                          />
-                        ) : (
-                          <div className="text-muted-foreground flex items-center gap-2">
-                            <div className="animate-spin">
-                              <LoaderIcon size={14} />
-                            </div>
-                            <span>Running {toolName}...</span>
+                      <div className="animate-pulse">
+                        <div className="text-muted-foreground flex items-center gap-2">
+                          <div className="animate-spin">
+                            <LoaderIcon size={14} />
                           </div>
-                        )}
+                          <span>Running {toolName}...</span>
+                        </div>
                       </div>
                     </div>
                   );
@@ -210,51 +185,25 @@ const PurePreviewMessage = ({
 
                   return (
                     <div key={toolCallId}>
-                      {!['getActions', 'getRelevantApps'].includes(
-                        toolName,
-                      ) && (
+                      {![
+                        'getActions',
+                        'getRelevantApps',
+                        'connectApp',
+                      ].includes(toolName) && (
                         <div className="text-sm text-muted-foreground mb-2">
                           {toolName}
                         </div>
                       )}
-                      <div className="transition-all duration-300">
-                        {toolName === 'getWeather' ? (
-                          <Weather weatherAtLocation={result} />
-                        ) : toolName === 'createDocument' ? (
-                          <DocumentPreview
-                            isReadonly={isReadonly}
-                            result={result}
-                          />
-                        ) : toolName === 'updateDocument' ? (
-                          <DocumentToolResult
-                            type="update"
-                            result={result}
-                            isReadonly={isReadonly}
-                          />
-                        ) : toolName === 'requestSuggestions' ? (
-                          <DocumentToolResult
-                            type="request-suggestions"
-                            result={result}
-                            isReadonly={isReadonly}
-                          />
-                        ) : toolName === 'connectApp' ? (
-                          <ConnectButton
-                            integrationKey={result.integrationKey}
-                            logoUri={result.logoUri}
-                            append={append}
-                          />
-                        ) : (
-                          <div className="bg-muted p-4 rounded-lg">
-                            <details className="group">
-                              <summary className="cursor-pointer text-sm text-muted-foreground mb-2 hover:text-foreground">
-                                See more
-                              </summary>
-                              <pre className="text-sm overflow-x-auto mt-2">
-                                {JSON.stringify(result, null, 2)}
-                              </pre>
-                            </details>
-                          </div>
-                        )}
+
+                      <div className="bg-muted p-4 rounded-lg">
+                        <details className="group">
+                          <summary className="cursor-pointer text-sm text-muted-foreground mb-2 hover:text-foreground">
+                            See more
+                          </summary>
+                          <pre className="text-sm overflow-x-auto mt-2">
+                            {JSON.stringify(result, null, 2)}
+                          </pre>
+                        </details>
                       </div>
                     </div>
                   );
