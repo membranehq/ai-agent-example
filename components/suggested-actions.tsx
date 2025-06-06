@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { memo } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { VisibilityType } from './visibility-selector';
+import Image from 'next/image';
 
 interface SuggestedActionsProps {
   chatId: string;
@@ -19,40 +20,38 @@ function PureSuggestedActions({
 }: SuggestedActionsProps) {
   const suggestedActions = [
     {
-      title: 'What are the advantages',
-      label: 'of using Next.js?',
-      action: 'What are the advantages of using Next.js?',
+      title: 'Check my',
+      label: 'Gmail inbox',
+      action: 'Show me my recent Gmail messages',
+      icon: 'https://static.integration.app/connectors/gmail/logo.png',
     },
     {
-      title: 'Write code to',
-      label: `demonstrate djikstra's algorithm`,
-      action: `Write code to demonstrate djikstra's algorithm`,
+      title: 'Show my',
+      label: 'upcoming calendar events',
+      action: 'What are my upcoming calendar events for this week?',
+      icon: 'https://static.integration.app/connectors/google-calendar/logo.png',
     },
     {
-      title: 'Help me write an essay',
-      label: `about silicon valley`,
-      action: `Help me write an essay about silicon valley`,
-    },
-    {
-      title: 'What is the weather',
-      label: 'in San Francisco?',
-      action: 'What is the weather in San Francisco?',
+      title: 'Find contacts',
+      label: 'in HubSpot',
+      action: 'Search for contacts in HubSpot',
+      icon: 'https://static.integration.app/connectors/hubspot/logo.png',
     },
   ];
 
   return (
     <div
       data-testid="suggested-actions"
-      className="grid sm:grid-cols-2 gap-2 w-full"
+      className="flex gap-2 w-full overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
     >
       {suggestedActions.map((suggestedAction, index) => (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 20 }}
           transition={{ delay: 0.05 * index }}
           key={`suggested-action-${suggestedAction.title}-${index}`}
-          className={index > 1 ? 'hidden sm:block' : 'block'}
+          className="flex-shrink-0"
         >
           <Button
             variant="ghost"
@@ -64,12 +63,23 @@ function PureSuggestedActions({
                 content: suggestedAction.action,
               });
             }}
-            className="text-left border rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start"
+            className="text-left border rounded-2xl px-4 py-2 text-sm whitespace-nowrap bg-muted/50 hover:bg-muted/70 transition-colors shadow-sm flex items-center gap-2"
           >
-            <span className="font-medium">{suggestedAction.title}</span>
-            <span className="text-muted-foreground">
-              {suggestedAction.label}
-            </span>
+            {suggestedAction.icon && (
+              <Image
+                src={suggestedAction.icon}
+                alt={`${suggestedAction.title} icon`}
+                width={20}
+                height={20}
+                className="rounded-sm"
+              />
+            )}
+            <div>
+              <span className="font-medium">{suggestedAction.title} </span>
+              <span className="text-muted-foreground">
+                {suggestedAction.label}
+              </span>
+            </div>
           </Button>
         </motion.div>
       ))}

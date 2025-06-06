@@ -8,16 +8,16 @@ export const Greeting = () => {
         <img
           src="https://integration.app/images/logo--dark.svg"
           alt="Integration App Logo"
-          className="h-12 w-auto dark:hidden"
+          className="h-10 w-auto dark:hidden"
         />
         <img
           src="https://integration.app/images/logo--white.svg"
           alt="Integration App Logo"
-          className="h-12 w-auto hidden dark:block"
+          className="h-10 w-auto hidden dark:block"
         />
       </div>
 
-      <p className="text-lg text-gray-900 dark:text-white/90 leading-relaxed text-center">
+      <p className="text-md text-gray-900 dark:text-white/90 leading-relaxed text-center">
         <a
           href="http://integration.app"
           target="_blank"
