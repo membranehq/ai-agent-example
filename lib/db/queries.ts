@@ -39,6 +39,7 @@ import { generateUUID } from '../utils';
 import { generateHashedPassword } from './utils';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { ChatSDKError } from '../errors';
+import type { ToolIndexItem } from '../types';
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -56,6 +57,20 @@ export async function getUser(email: string): Promise<Array<User>> {
       'bad_request:database',
       'Failed to get user by email',
     );
+  }
+}
+
+export async function getUserById(id: string): Promise<User> {
+  try {
+    const [result] = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, id))
+      .limit(1);
+
+    return result;
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to get user by id');
   }
 }
 
@@ -559,20 +574,40 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
 
 export async function updateChatExposedTools({
   chatId,
-  actionIds,
+  toolsList,
 }: {
   chatId: string;
-  actionIds: string[];
+  toolsList: ToolIndexItem[];
 }) {
   try {
     return await db
       .update(chat)
-      .set({ exposedTools: { actionIds } })
+      .set({ exposedTools: { toolsList } })
       .where(eq(chat.id, chatId));
   } catch (error) {
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to update chat exposed tools',
+    );
+  }
+}
+
+export async function getChatExposedTools({ chatId }: { chatId: string }) {
+  try {
+    const [selectedChat] = await db
+      .select()
+      .from(chat)
+      .where(eq(chat.id, chatId));
+
+    console.log('selectedChat', selectedChat);
+
+    return selectedChat?.exposedTools as {
+      toolsList: ToolIndexItem[];
+    };
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get chat exposed tools',
     );
   }
 }

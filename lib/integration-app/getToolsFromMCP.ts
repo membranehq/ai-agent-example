@@ -1,6 +1,6 @@
 import { experimental_createMCPClient } from 'ai';
 
-export async function getTools({
+export async function getToolsFromMCP({
   token,
   app,
 }: { token: string; app?: string }) {
@@ -12,7 +12,6 @@ export async function getTools({
   }
 
   let url = `${INTEGRATION_APP_MCP_SERVER_HOST}/sse?token=${token}`;
-  console.log('url', url);
 
   if (app) {
     url = `${url}&integrationKey=${app}`;

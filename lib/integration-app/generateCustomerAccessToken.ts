@@ -1,8 +1,8 @@
 import { type Algorithm, sign } from 'jsonwebtoken';
 
 interface TokenData {
-  id?: string;
-  name?: string;
+  id: string 
+  name?: string | null
 }
 
 export async function generateIntegrationAppCustomerAccessToken(
@@ -24,7 +24,10 @@ export async function generateIntegrationAppCustomerAccessToken(
     };
 
     return sign(
-      tokenData,
+      {
+        id: tokenData.id,
+        name: tokenData.name || '',
+      },
       process.env.INTEGRATION_APP_WORKSPACE_SECRET,
       options,
     );

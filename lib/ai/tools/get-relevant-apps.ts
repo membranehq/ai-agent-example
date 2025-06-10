@@ -1,4 +1,4 @@
-import { searchActions } from '@/lib/pinecone/search-actions';
+import { searchIndex } from '@/lib/pinecone/search-index';
 import { tool } from 'ai';
 import { z } from 'zod';
 
@@ -19,34 +19,48 @@ export const getRelevantApps = tool({
       `),
   }),
   execute: async ({ query }) => {
+    try {
+      const appName = query.includes(':') ? query.split(':')[0]?.trim() : null;
 
-    const appName = query.includes(':') ? query.split(':')[0]?.trim() : null;
+      const searchActionResult = await searchIndex({
+        query,
+        topK: 10,
+      });
 
-    const searchActionResult = await searchActions(query, 10);
+      const appNameIsExactMatch = searchActionResult.some(
+        (action) => action.integrationName === appName,
+      );
 
-    const appNameIsExactMatch = searchActionResult.some(action => action.integrationName === appName);
-
-    if(appName && appNameIsExactMatch) {
-      return {
-        apps: [appName],
-        answer: `Proceeding with ${appName}`,
+      if (appName && appNameIsExactMatch) {
+        return {
+          apps: [appName],
+          answer: `Proceeding with ${appName}`,
+        };
       }
-    }
 
-    const apps = Array.from(new Set(searchActionResult.map(action => action.integrationName)));
-    
-    if(appName && !appNameIsExactMatch) {
+      const apps = Array.from(
+        new Set(searchActionResult.map((action) => action.integrationName)),
+      );
+
+      if (appName && !appNameIsExactMatch) {
+        return {
+          apps,
+          answer: `I couldn't find a match for ${appName}, Do you mean ${apps.join(', ')}?`,
+        };
+      }
+
+      const answer = `Based on your prompt, "${query}", I found these relevant apps: ${apps.join(', ')}, Please select which ones you'd like to use.`;
+
       return {
         apps,
-        answer: `I couldn't find a match for ${appName}, Do you mean ${apps.join(', ')}?`,
-      }
+        answer,
+      };
+    } catch (error) {
+      console.error('Error in getRelevantApps', error);
+      return {
+        apps: [],
+        answer: 'And error occurred while trying to find relevant apps',
+      };
     }
-
-    const answer = `Based on your prompt, "${query}", I found these relevant apps: ${apps.join(', ')}, Please select which ones you'd like to use.`;
-    
-    return {
-      apps,
-      answer,
-    };
   },
 });
