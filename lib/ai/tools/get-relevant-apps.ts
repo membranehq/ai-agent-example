@@ -20,6 +20,10 @@ export const getRelevantApps = tool({
   }),
   execute: async ({ query }) => {
     try {
+      // If query contains an app name it should be in this format:
+      // app-name: action
+      // E.g: google-calendar: get events
+      // E.g: notion: create a page
       const appName = query.includes(':') ? query.split(':')[0]?.trim() : null;
 
       const searchActionResult = await searchIndex({
