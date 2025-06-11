@@ -2,9 +2,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { IntegrationAppClient } from '@integration-app/sdk';
 import { updateChatExposedTools } from '@/lib/db/queries';
-
 import { searchIndex } from '@/lib/pinecone/search-index';
-import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
 import { indexMcpToolsForApp } from '@/lib/pinecone/index-user-mcp-tools-for-app';
 
 interface GetActionsProps {
@@ -19,15 +17,11 @@ interface GetActionsProps {
  *
  * Exposure process:
  * - Make sure user is connected to the app
- * - Get tool for the app from an MCP server
- * - Index the tools in a vector database
- *
+ * - Get tools for the app from an MCP server and index them
  * - Find the most relevant tools for the user query
  * - Store the tools in the chat context
  *
  * IF some tools were added to the chat context, we call the LLM again with the chat context tools
- *
- *
  */
 export const getActions = ({
   chatId,
@@ -63,7 +57,6 @@ export const getActions = ({
         if (hasConnectionToApp) {
           ///////////////////////////////////////
           // Index tools retrieved from MCP
-          // and index them in a vector database
           ///////////////////////////////////////
 
           await indexMcpToolsForApp({
