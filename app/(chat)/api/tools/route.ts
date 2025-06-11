@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getTools } from '@/lib/integration-app/getToolsFromMCP';
+import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
 import { auth } from '@/app/(auth)/auth';
 
@@ -16,7 +16,7 @@ export async function GET() {
       name: session.user.name ?? '',
     });
 
-    const tools = await getTools({ token });
+    const tools = await getToolsFromMCP({ token });
 
     return NextResponse.json(tools);
   } catch (error) {
