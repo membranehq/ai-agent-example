@@ -17,7 +17,7 @@ export type Surface =
   | 'document'
   | 'suggestions';
 
-export type ErrorCode = `${ErrorType}:${Surface}`;
+export type ErrorCode = `${ErrorType}:${Surface}` | 'others';
 
 export type ErrorVisibility = 'response' | 'log' | 'none';
 
@@ -106,6 +106,8 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
       return 'You need to sign in to view this document. Please sign in and try again.';
     case 'bad_request:document':
       return 'The request to create or update the document was invalid. Please check your input and try again.';
+    case 'others':
+      return 'Something went wrong. Please try again later.';
 
     default:
       return 'Something went wrong. Please try again later.';

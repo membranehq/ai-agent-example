@@ -109,7 +109,7 @@ export async function POST(request: Request) {
     const integrationAppCustomerAccessToken =
       await generateIntegrationAppCustomerAccessToken({
         id: session.user.id,
-        name: session.user.name ?? '',
+        name: session.user.name,
       });
 
     const actionList =
@@ -213,7 +213,8 @@ export async function POST(request: Request) {
           if (exposeToolResult) {
             if (
               exposeToolResult.success &&
-              exposeToolResult.data?.exposedToolsCount
+              exposeToolResult.data?.exposedToolsCount &&
+              exposeToolResult.data.exposedToolsCount > 0
             ) {
               shouldPopulateTools = true;
             }
@@ -223,7 +224,7 @@ export async function POST(request: Request) {
         }
 
         if (shouldPopulateTools) {
-          const exposedTools = await getChatExposedTools({
+          const exposedToolsMeta = await getChatExposedTools({
             chatId: id,
           });
 
@@ -239,12 +240,14 @@ export async function POST(request: Request) {
             `,
           );
 
+          const systemPrompt = `
+            You're a friendly task assistant, based on task user is trying to perform specified in the messages, call the appropriate tool from this list: 
+            ${Object.keys(derivedTools).join(', ')} to perform the task specified by the user
+          `;
+
           const result1 = streamText({
             model: myProvider.languageModel(selectedChatModel),
-            system: `
-              You're a friendly task assistant, based on task user is trying to perform specified in the messages, call the appropriate tool from this list: 
-              ${Object.keys(derivedTools).join(', ')} to perform the task specified by the user
-            `,
+            system: systemPrompt,
             messages,
             maxSteps: 5,
             experimental_generateMessageId: generateUUID,
@@ -306,9 +309,7 @@ export async function POST(request: Request) {
     return new Response(stream);
   } catch (error) {
     console.error('Error in chat route', error);
-    if (error instanceof ChatSDKError) {
-      return error.toResponse();
-    }
+    return new ChatSDKError('others').toResponse();
   }
 }
 
