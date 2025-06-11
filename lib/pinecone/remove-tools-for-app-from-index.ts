@@ -13,7 +13,7 @@ interface HandleOnDisconnectProps {
  * On disconnect, we want to remove all tools for the disconnected app for the user.
  */
 
-export async function handleOnDisconnect({
+export async function removeToolsForAppFromIndex({
   user,
   app,
 }: HandleOnDisconnectProps) {

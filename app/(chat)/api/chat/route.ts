@@ -27,7 +27,7 @@ import { differenceInSeconds } from 'date-fns';
 import { ChatSDKError } from '@/lib/errors';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
 import { getRelevantApps } from '@/lib/ai/tools/get-relevant-apps';
-import { getActions } from '@/lib/ai/tools/expose-tools';
+import { getActions } from '@/lib/ai/tools/get-actions';
 import { connectApp } from '@/lib/ai/tools/connect-app';
 import { toolsMetadataToTools } from '@/lib/tools-metadata-to-tools';
 import type { ToolIndexItem } from '@/lib/types';
@@ -145,7 +145,10 @@ export async function POST(request: Request) {
             getActions: getActions({
               chatId: id,
               integrationAppCustomerAccessToken,
-              userId: session.user.id,
+              user: {
+                id: session.user.id,
+                name: session.user.name ?? '',
+              },
             }),
             connectApp: connectApp(integrationAppCustomerAccessToken),
           },

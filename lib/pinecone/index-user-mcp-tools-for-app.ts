@@ -14,7 +14,7 @@ interface HandleConnectProps {
 /**
  * On connect, we want to index all tools the app the user has connected.
  */
-export async function handleOnConnect({ user, app }: HandleConnectProps) {
+export async function indexMcpToolsForApp({ user, app }: HandleConnectProps) {
   const INDEX_NAME = process.env.PINECONE_CLIENT_TOOLS as string;
 
   const token = await generateIntegrationAppCustomerAccessToken({

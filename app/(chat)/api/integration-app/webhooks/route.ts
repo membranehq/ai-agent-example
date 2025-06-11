@@ -1,9 +1,8 @@
 import { verifyIntegrationAppToken } from '@/lib/integration-app/verifyIntegrationAppToken';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { handleOnConnect } from './handleOnConnect';
-import { handleOnDisconnect } from './handleOnDisconnect';
 import { getUserById } from '@/lib/db/queries';
+import { removeToolsForAppFromIndex } from '@/lib/pinecone/remove-tools-for-app-from-index';
 
 const schema = z.object({
   eventType: z.string(),
@@ -50,20 +49,14 @@ export async function POST(request: NextRequest) {
    */
 
   switch (eventType) {
-    case 'connection.created':
-      await handleOnConnect({
-        user: _user,
-        app: data.connection.integration.key,
-      });
-      break;
     case 'connection.deleted':
-      await handleOnDisconnect({
+      await removeToolsForAppFromIndex({
         user: _user,
         app: data.connection.integration.key,
       });
       break;
     case 'connection.disconnected':
-      await handleOnDisconnect({
+      await removeToolsForAppFromIndex({
         user: _user,
         app: data.connection.integration.key,
       });
