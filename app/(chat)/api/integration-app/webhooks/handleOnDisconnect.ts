@@ -17,7 +17,7 @@ export async function handleOnDisconnect({
   user,
   app,
 }: HandleOnDisconnectProps) {
-  const INDEX_NAME = process.env.PINECONE_CLIENT_TOOLS_INDEX_NAME as string;
+  const INDEX_NAME = process.env.PINECONE_CLIENT_TOOLS as string;
 
   /**
    * TODO: We need a way to be able to list of records that match a filter

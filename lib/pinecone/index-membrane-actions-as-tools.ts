@@ -71,12 +71,12 @@ async function upsertActionsToPinecone(actions: ToolIndexItem[]): Promise<any> {
     throw new Error('PINECONE_API_KEY is not set');
   }
 
-  if (!process.env.PINECONE_TOOLS_INDEX_NAME) {
-    throw new Error('PINECONE_TOOLS_INDEX_NAME is not set');
+  if (!process.env.PINECONE_MEMBRANE_TOOLS) {
+    throw new Error('PINECONE_MEMBRANE_TOOLS is not set');
   }
 
   const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
-  const index = pc.index(process.env.PINECONE_TOOLS_INDEX_NAME);
+  const index = pc.index(process.env.PINECONE_MEMBRANE_TOOLS);
 
   // Upsert in batches to avoid rate limiting errors
   const BATCH_SIZE = 90;

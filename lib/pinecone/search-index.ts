@@ -44,8 +44,8 @@ export async function searchIndex({
 
   const indexName = (
     index === 'membrane'
-      ? process.env.PINECONE_TOOLS_INDEX_NAME
-      : process.env.PINECONE_CLIENT_TOOLS_INDEX_NAME
+      ? process.env.PINECONE_MEMBRANE_TOOLS
+      : process.env.PINECONE_CLIENT_TOOLS
   ) as string;
 
   const pcIndex = pc.index(indexName);
