@@ -25,17 +25,30 @@ export async function toolsMetadataToTools({
     token: integrationAppCustomerAccessToken,
   });
 
+  /**
+   * TODO: stop sourcing inputSchema from membrane
+   * 
+   * We hit a limit when storing inputSchema in Pinecone so for now we are fetching it from membrane
+   *
+   * We'll move away from Pinecone to Postgres with PgVector so we can store the inputSchema in the database
+   * along with vector embeddings and tool metadata to avoid the limit.
+   */
   for (const toolIndexItem of toolsIndexItems) {
     /**
-     * TODO: stop sourcing inputSchema from membrane
-     * We hit a limit when storing inputSchema in Pinecone so for now we are fetching it from membrane
-     *
-     * We've move away from Pinecone to Postgres with PgVector so we can store the inputSchema in the database
-     * along with vector embeddings and tool metadata to avoid the limit.
+     * The MCP adds the integration name to the tool key
+     * Given toolKey = 'gmail-create-user', the actionKey is 'create-user'
+     * e.g. 'gmail-create-user' -> 'create-user'
+     * e.g. 'gmail-get-user' -> 'get-user'
      */
+    const actionKey = toolIndexItem.toolKey.startsWith(
+      `${toolIndexItem.integrationName}-`,
+    )
+      ? toolIndexItem.toolKey.split(`${toolIndexItem.integrationName}-`)[1]
+      : toolIndexItem.toolKey;
+
     const { inputSchema } = await integrationAppClient
       .action({
-        key: toolIndexItem.toolKey,
+        key: actionKey,
         integrationKey: toolIndexItem.integrationName,
       })
       .get();
@@ -51,7 +64,7 @@ export async function toolsMetadataToTools({
             .actionInstance({
               autoCreate: true,
               integrationKey: toolIndexItem.integrationName,
-              parentKey: toolIndexItem.toolKey,
+              parentKey: actionKey,
             })
             .run(args);
 
