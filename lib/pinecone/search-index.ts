@@ -21,7 +21,7 @@ interface SearchActionsProps {
   /**
    * index name to search in
    */
-  indexName?: string;
+  index: 'membrane' | 'client-tools';
 
   /**
    * filter to apply to the search
@@ -35,16 +35,29 @@ export async function searchIndex({
   query,
   topK = 10,
   namespace = DEFAULT_NAMESPACE,
-  indexName = process.env.PINECONE_TOOLS_INDEX_NAME as string,
   filter,
+  index,
 }: SearchActionsProps) {
   const pc = new Pinecone({
     apiKey: process.env.PINECONE_API_KEY as string,
   });
 
-  const index = pc.index(indexName);
+  const indexName = (
+    index === 'membrane'
+      ? process.env.PINECONE_TOOLS_INDEX_NAME
+      : process.env.PINECONE_CLIENT_TOOLS_INDEX_NAME
+  ) as string;
 
-  const results = (await index.namespace(namespace).searchRecords({
+  const pcIndex = pc.index(indexName);
+
+  console.log(`Searching index: ${indexName}`, {
+    namespace,
+    filter,
+    topK,
+    query,
+  });
+
+  const results = (await pcIndex.namespace(namespace).searchRecords({
     fields: ['*'],
     query: {
       topK,
@@ -60,6 +73,8 @@ export async function searchIndex({
       }[];
     };
   };
+
+  console.log(`Found ${results.result.hits.length} results`);
 
   const relatedActions = results.result.hits.map((hit) => ({
     ...hit.fields,

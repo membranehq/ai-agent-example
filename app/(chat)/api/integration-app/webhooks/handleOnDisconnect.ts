@@ -27,7 +27,7 @@ export async function handleOnDisconnect({
   const searchActionResult = await searchIndex({
     query: app,
     namespace: user.id,
-    indexName: INDEX_NAME,
+    index: 'client-tools',
     filter: {
       integrationName: app,
       userId: user.id,

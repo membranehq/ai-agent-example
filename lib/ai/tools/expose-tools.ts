@@ -5,7 +5,17 @@ import { updateChatExposedTools } from '@/lib/db/queries';
 
 import { searchIndex } from '@/lib/pinecone/search-index';
 
-export const getActions = (chatId: string, token: string) =>
+interface GetActionsProps {
+  chatId: string;
+  integrationAppCustomerAccessToken: string;
+  userId: string;
+}
+
+export const getActions = ({
+  chatId,
+  integrationAppCustomerAccessToken,
+  userId,
+}: GetActionsProps) =>
   tool({
     description: 'Get actions for the selected app.',
     parameters: z.object({
@@ -23,7 +33,7 @@ export const getActions = (chatId: string, token: string) =>
     execute: async ({ app, query }) => {
       try {
         const integrationAppClient = new IntegrationAppClient({
-          token,
+          token: integrationAppCustomerAccessToken,
         });
 
         const result = await integrationAppClient.connections.find({
@@ -39,6 +49,8 @@ export const getActions = (chatId: string, token: string) =>
             filter: {
               integrationName: app,
             },
+            index: 'client-tools',
+            namespace: userId,
           });
 
           await updateChatExposedTools({

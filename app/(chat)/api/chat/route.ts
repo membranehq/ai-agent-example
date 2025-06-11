@@ -31,9 +31,9 @@ import { getActions } from '@/lib/ai/tools/expose-tools';
 import { connectApp } from '@/lib/ai/tools/connect-app';
 import { toolsMetadataToTools } from '@/lib/tools-metadata-to-tools';
 import type { ToolIndexItem } from '@/lib/types';
+import { getMoreRelevantApp } from '@/lib/ai/tools/get-more-relevant-app';
 
 export const maxDuration = 60;
-
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
@@ -141,7 +141,12 @@ export async function POST(request: Request) {
           tools: {
             ...exposedTools,
             getRelevantApps: getRelevantApps,
-            getActions: getActions(id, integrationAppCustomerAccessToken),
+            getMoreRelevantApp: getMoreRelevantApp,
+            getActions: getActions({
+              chatId: id,
+              integrationAppCustomerAccessToken,
+              userId: session.user.id,
+            }),
             connectApp: connectApp(integrationAppCustomerAccessToken),
           },
           onFinish: async ({ response }) => {
@@ -220,6 +225,12 @@ export async function POST(request: Request) {
             integrationAppCustomerAccessToken,
             includeConfigureTools: false,
           });
+
+          console.log(
+            `The following tools were exposed: ${Object.keys(derivedTools).join(`, `)} 
+            Now one of the tools will be called
+            `,
+          );
 
           const result1 = streamText({
             model: myProvider.languageModel(selectedChatModel),
