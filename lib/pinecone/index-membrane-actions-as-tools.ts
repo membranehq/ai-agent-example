@@ -1,38 +1,12 @@
 import { IntegrationAppClient } from '@integration-app/sdk';
 import { Pinecone } from '@pinecone-database/pinecone';
-import { sign, type SignOptions } from 'jsonwebtoken';
+
 import { config } from 'dotenv';
+import { generateIntegrationAppAdminToken } from '../integration-app/generateAdminToken';
+import type { ToolIndexItem } from '../types';
 
 // Load environment variables from .env file
 config({ path: '.env.local' });
-
-const getIntegrationAppAdminToken = () => {
-  if (!process.env.INTEGRATION_APP_WORKSPACE_SECRET) {
-    throw new Error('INTEGRATION_APP_WORKSPACE_SECRET is not set');
-  }
-
-  if (!process.env.INTEGRATION_APP_WORKSPACE_KEY) {
-    throw new Error('INTEGRATION_APP_WORKSPACE_KEY is not set');
-  }
-
-  const tokenData = {
-    isAdmin: true,
-  };
-
-  const options: SignOptions = {
-    issuer: process.env.INTEGRATION_APP_WORKSPACE_KEY,
-    expiresIn: 7200,
-    algorithm: 'HS512',
-  };
-
-  const token = sign(
-    tokenData,
-    process.env.INTEGRATION_APP_WORKSPACE_SECRET,
-    options,
-  );
-
-  return token;
-};
 
 async function fetchAllWithPagination<T>(
   fetchFn: (params: {
@@ -53,7 +27,7 @@ async function fetchAllWithPagination<T>(
 
 async function getAllWorkspaceActions() {
   const integrationAppClient = new IntegrationAppClient({
-    token: getIntegrationAppAdminToken(),
+    token: generateIntegrationAppAdminToken(),
   });
 
   const allIntegrations = await fetchAllWithPagination(({ cursor }) =>
@@ -62,12 +36,7 @@ async function getAllWorkspaceActions() {
 
   console.log(`\nWorkspace has ${allIntegrations.length} integrations\n`);
 
-  const allActions: Array<{
-    id: string;
-    text: string;
-    integrationName: string;
-    key: string;
-  }> = [];
+  const allActions: ToolIndexItem[] = [];
 
   for (const integration of allIntegrations) {
     const allActionsForIntegration = await fetchAllWithPagination(
@@ -85,10 +54,10 @@ async function getAllWorkspaceActions() {
     allActions.push(
       ...allActionsForIntegration.map((action) => {
         return {
-          id: action.id,
-          text: action.name,
+          id: `${integration.key}_${action.key}`,
           integrationName: integration.key,
-          key: action.key,
+          toolKey: action.key,
+          text: action.name,
         };
       }),
     );
@@ -97,24 +66,17 @@ async function getAllWorkspaceActions() {
   return allActions;
 }
 
-async function upsertActionsToPinecone(
-  actions: Array<{
-    id: string;
-    text: string;
-    integrationName: string;
-    key: string;
-  }>,
-): Promise<any> {
+async function upsertActionsToPinecone(actions: ToolIndexItem[]): Promise<any> {
   if (!process.env.PINECONE_API_KEY) {
     throw new Error('PINECONE_API_KEY is not set');
   }
 
-  if (!process.env.PINECONE_TOOLS_INDEX_NAME) {
-    throw new Error('PINECONE_TOOLS_INDEX_NAME is not set');
+  if (!process.env.PINECONE_MEMBRANE_TOOLS) {
+    throw new Error('PINECONE_MEMBRANE_TOOLS is not set');
   }
 
   const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
-  const index = pc.index(process.env.PINECONE_TOOLS_INDEX_NAME);
+  const index = pc.index(process.env.PINECONE_MEMBRANE_TOOLS);
 
   // Upsert in batches to avoid rate limiting errors
   const BATCH_SIZE = 90;

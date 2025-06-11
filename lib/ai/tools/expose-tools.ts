@@ -3,17 +3,26 @@ import { z } from 'zod';
 import { IntegrationAppClient } from '@integration-app/sdk';
 import { updateChatExposedTools } from '@/lib/db/queries';
 
-import { searchActions } from '@/lib/pinecone/search-actions';
+import { searchIndex } from '@/lib/pinecone/search-index';
 
-export const getActions = (chatId: string, token: string) =>
+interface GetActionsProps {
+  chatId: string;
+  integrationAppCustomerAccessToken: string;
+  userId: string;
+}
+
+export const getActions = ({
+  chatId,
+  integrationAppCustomerAccessToken,
+  userId,
+}: GetActionsProps) =>
   tool({
-    description:
-      'Get actions for the selected app.',
+    description: 'Get actions for the selected app.',
     parameters: z.object({
       app: z.string().describe(`The key of the app to get actions for`),
       query: z
-      .string()
-      .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query
+        .string()
+        .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query
         E.g for "Can you send an email" the query should be "send an email"
         E.g for create a page on notion the query should be "notion: create a page"
         E.g for "Can you send an email to jude@gmail" the query should be "send an email"
@@ -24,7 +33,7 @@ export const getActions = (chatId: string, token: string) =>
     execute: async ({ app, query }) => {
       try {
         const integrationAppClient = new IntegrationAppClient({
-          token,
+          token: integrationAppCustomerAccessToken,
         });
 
         const result = await integrationAppClient.connections.find({
@@ -33,24 +42,26 @@ export const getActions = (chatId: string, token: string) =>
 
         const hasConnectionToApp = result.items.length > 0;
 
-        const searchActionResult = await searchActions(query, 1, app);
-
-        console.log('searchActionResult', searchActionResult);
-
         if (hasConnectionToApp) {
+          const searchActionResult = await searchIndex({
+            query,
+            topK: 1,
+            filter: {
+              integrationName: app,
+            },
+            index: 'client-tools',
+            namespace: userId,
+          });
+
           await updateChatExposedTools({
             chatId,
-            actionIds: searchActionResult.map((tool) => tool.id),
+            toolsList: searchActionResult,
           });
 
           return {
             success: true,
             data: {
-              /*
-                List of related actions to the user's query
-                naming it internal_hash here to prevent llm from trying to use it.
-               */
-              internal_hash: searchActionResult.map((action) => action.id),
+              exposedToolsCount: searchActionResult.length,
             },
           };
         }

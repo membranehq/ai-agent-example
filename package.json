@@ -17,7 +17,7 @@
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
     "test": "export PLAYWRIGHT=True && pnpm exec playwright test",
-    "pinecone:index-actions": "npx tsx lib/pinecone/index-actions.ts"
+    "pinecone:index-membrane-actions": "npx tsx lib/pinecone/index-membrane-actions-as-tools.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
@@ -96,7 +96,7 @@
     "tailwindcss-animate": "^1.0.7",
     "unique-names-generator": "^4.7.1",
     "usehooks-ts": "^3.1.0",
-    "zod": "^3.23.8"
+    "zod": "^3.25.57"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",

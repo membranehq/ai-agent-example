@@ -10,6 +10,7 @@ import { systemPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById,
   getChatById,
+  getChatExposedTools,
   getMessageCountByUserId,
   getMessagesByChatId,
   getStreamIdsByChatId,
@@ -28,7 +29,9 @@ import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app
 import { getRelevantApps } from '@/lib/ai/tools/get-relevant-apps';
 import { getActions } from '@/lib/ai/tools/expose-tools';
 import { connectApp } from '@/lib/ai/tools/connect-app';
-import { actionIdsToTools } from '@/lib/actionIds-to-tools';
+import { toolsMetadataToTools } from '@/lib/tools-metadata-to-tools';
+import type { ToolIndexItem } from '@/lib/types';
+import { getMoreRelevantApp } from '@/lib/ai/tools/get-more-relevant-app';
 
 export const maxDuration = 60;
 
@@ -109,18 +112,14 @@ export async function POST(request: Request) {
         name: session.user.name ?? '',
       });
 
-    const actionIds =
-      ((chat?.exposedTools as any)?.actionIds as string[]) ?? [];
+    const actionList =
+      ((chat?.exposedTools as any)?.toolList as ToolIndexItem[]) ?? [];
 
-    const exposedTools = await actionIdsToTools({
-      actionIds: actionIds,
+    const exposedTools = await toolsMetadataToTools({
+      toolsIndexItems: actionList,
       integrationAppCustomerAccessToken,
       includeConfigureTools: false,
     });
-
-    // console.log('exposedTools', exposedTools);
-
-    // console.log('messages', JSON.stringify(messages, null, 2));
 
     const stream = createDataStream({
       execute: async (dataStream) => {
@@ -142,10 +141,12 @@ export async function POST(request: Request) {
           tools: {
             ...exposedTools,
             getRelevantApps: getRelevantApps,
-            getActions: getActions(
-              id,
+            getMoreRelevantApp: getMoreRelevantApp,
+            getActions: getActions({
+              chatId: id,
               integrationAppCustomerAccessToken,
-            ),
+              userId: session.user.id,
+            }),
             connectApp: connectApp(integrationAppCustomerAccessToken),
           },
           onFinish: async ({ response }) => {
@@ -195,7 +196,7 @@ export async function POST(request: Request) {
 
         const steps = await result.steps;
 
-        let suggestedActionIds: string[] | undefined;
+        let shouldPopulateTools = false;
 
         for (const step of steps) {
           const exposeToolResult = step.toolResults.find(
@@ -203,20 +204,33 @@ export async function POST(request: Request) {
           )?.result;
 
           if (exposeToolResult) {
-            if (exposeToolResult.success) {
-              suggestedActionIds = exposeToolResult.data.internal_hash;
+            if (
+              exposeToolResult.success &&
+              exposeToolResult.data?.exposedToolsCount
+            ) {
+              shouldPopulateTools = true;
             }
 
             break;
           }
         }
 
-        if (suggestedActionIds) {
-          const derivedTools = await actionIdsToTools({
-            actionIds: suggestedActionIds,
+        if (shouldPopulateTools) {
+          const exposedTools = await getChatExposedTools({
+            chatId: id,
+          });
+
+          const derivedTools = await toolsMetadataToTools({
+            toolsIndexItems: exposedTools.toolsList,
             integrationAppCustomerAccessToken,
             includeConfigureTools: false,
           });
+
+          console.log(
+            `The following tools were exposed: ${Object.keys(derivedTools).join(`, `)} 
+            Now one of the tools will be called
+            `,
+          );
 
           const result1 = streamText({
             model: myProvider.languageModel(selectedChatModel),

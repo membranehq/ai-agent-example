@@ -1,6 +1,6 @@
-import { searchActions } from '@/lib/pinecone/search-actions';
 import { tool } from 'ai';
 import { z } from 'zod';
+import { searchIndexAndSuggestApps } from './utils/search-Index-and-suggest-apps';
 
 export const getRelevantApps = tool({
   description: `See if you can find relevant apps for a user query if they are asking to perform an operation e.g:
@@ -19,34 +19,11 @@ export const getRelevantApps = tool({
       `),
   }),
   execute: async ({ query }) => {
+    const result = await searchIndexAndSuggestApps({
+      query,
+      index: 'client-tools',
+    });
 
-    const appName = query.includes(':') ? query.split(':')[0]?.trim() : null;
-
-    const searchActionResult = await searchActions(query, 10);
-
-    const appNameIsExactMatch = searchActionResult.some(action => action.integrationName === appName);
-
-    if(appName && appNameIsExactMatch) {
-      return {
-        apps: [appName],
-        answer: `Proceeding with ${appName}`,
-      }
-    }
-
-    const apps = Array.from(new Set(searchActionResult.map(action => action.integrationName)));
-    
-    if(appName && !appNameIsExactMatch) {
-      return {
-        apps,
-        answer: `I couldn't find a match for ${appName}, Do you mean ${apps.join(', ')}?`,
-      }
-    }
-
-    const answer = `Based on your prompt, "${query}", I found these relevant apps: ${apps.join(', ')}, Please select which ones you'd like to use.`;
-    
-    return {
-      apps,
-      answer,
-    };
+    return result;
   },
 });

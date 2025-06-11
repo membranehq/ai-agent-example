@@ -21,15 +21,15 @@ export const ConnectButton = ({
   );
 
   const handleConnect = async () => {
+    setState('connecting');
     try {
-      setState('connecting');
-
       const connection = await integrationApp
         .integration(integrationKey)
         .openNewConnection();
 
       if (connection?.id) {
         setState('connected');
+
         // Send "done" message to chat after successful connection
         if (append) {
           append({
@@ -54,7 +54,7 @@ export const ConnectButton = ({
     >
       {state === 'connecting' ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className="mr-2 size-4 animate-spin" />
           Connecting...
         </>
       ) : state === 'connected' ? (
@@ -66,7 +66,7 @@ export const ConnectButton = ({
         <img
           src={logoUri}
           alt="App logo"
-          className="ml-2 h-5 w-5 object-contain"
+          className="ml-2 size-5 object-contain"
         />
       )}
     </Button>

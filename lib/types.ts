@@ -1,8 +1,9 @@
 export type DataPart = { type: 'append-message'; message: string };
 
-export type PineActionActionItem = {
+export type ToolIndexItem = {
   id: string;
   integrationName: string;
-  key: string;
+
+  toolKey: string;
   text: string;
 };
