@@ -121,6 +121,11 @@ export async function POST(request: Request) {
       includeConfigureTools: false,
     });
 
+    const user = {
+      id: session.user.id,
+      name: session.user.name ?? '',
+    };
+
     const stream = createDataStream({
       execute: async (dataStream) => {
         const result = streamText({
@@ -140,15 +145,14 @@ export async function POST(request: Request) {
           },
           tools: {
             ...exposedTools,
-            getRelevantApps: getRelevantApps,
+            getRelevantApps: getRelevantApps({
+              user,
+            }),
             getMoreRelevantApp: getMoreRelevantApp,
             getActions: getActions({
               chatId: id,
               integrationAppCustomerAccessToken,
-              user: {
-                id: session.user.id,
-                name: session.user.name ?? '',
-              },
+              user,
             }),
             connectApp: connectApp(integrationAppCustomerAccessToken),
           },

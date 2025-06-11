@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
   const _user = {
     id: user.id,
-    name: user.name ?? '',
+    name: user.name,
   };
 
   /**
