@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { getUserById } from '@/lib/db/queries';
 import { removeToolsForAppFromIndex } from '@/lib/pinecone/remove-tools-for-app-from-index';
+import { indexMcpToolsForApp } from '@/lib/pinecone/index-user-mcp-tools-for-app';
 
 const schema = z.object({
   eventType: z.string(),
@@ -49,6 +50,12 @@ export async function POST(request: NextRequest) {
    */
 
   switch (eventType) {
+    case 'connection.created':
+      await indexMcpToolsForApp({
+        user: _user,
+        app: data.connection.integration.key,
+      });
+      break;
     case 'connection.deleted':
       await removeToolsForAppFromIndex({
         user: _user,
