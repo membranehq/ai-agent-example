@@ -231,16 +231,16 @@ const PurePreviewMessage = ({
 
                   return (
                     <div key={toolCallId}>
-                      {![
+                      {/* {![
                         'getActions',
                         'getRelevantApps',
                         'connectApp',
                         'getMoreRelevantApp',
-                      ].includes(toolName) && (
-                        <div className="text-sm text-muted-foreground mb-2">
-                          {toolName}
-                        </div>
-                      )}
+                      ].includes(toolName) && ( */}
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {toolName}
+                      </div>
+                      {/* )} */}
                       {renderToolResult(toolName, result)}
                     </div>
                   );
