@@ -15,6 +15,13 @@
       "when": 1749214681103,
       "tag": "0001_typical_swordsman",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1749720121083,
+      "tag": "0002_left_bug",
+      "breakpoints": true
     }
   ]
 }
