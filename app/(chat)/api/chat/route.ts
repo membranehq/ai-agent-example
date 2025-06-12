@@ -229,7 +229,7 @@ export async function POST(request: Request) {
           });
 
           const derivedTools = await toolsMetadataToTools({
-            toolsIndexItems: exposedTools.toolsList,
+            toolsIndexItems: exposedToolsMeta.toolsList,
             integrationAppCustomerAccessToken,
             includeConfigureTools: false,
           });
