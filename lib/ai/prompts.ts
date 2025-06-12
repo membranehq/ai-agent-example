@@ -15,7 +15,7 @@ export const regularPrompt = `You are task-man, a friendly task assistant. Here 
 
   Guidelines for tools:
   - connectApp: Only ask user to connect to an app if theres an error because of missing connection to the app.
-  - getActions: Sometimes you don't find any actions, run again one more time if you don't find any actions
+  - getActions: Sometimes getActions returns 0 exposedToolsCount, run again one more time if it returns 0 exposedToolsCount
   `;
 
 export const getAfterToolExposePrompt = (tools: string[]) => `

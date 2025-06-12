@@ -49,7 +49,11 @@ export async function searchIndexAndSuggestApps({
     }
 
     const apps = Array.from(
-      new Set(searchActionResult.map((action) => action.integrationKey)),
+      new Set(
+        searchActionResult
+          .map((action) => action.integrationKey)
+          .filter((app) => Boolean(app)),
+      ),
     );
 
     if (appName && !appNameIsExactMatch) {

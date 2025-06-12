@@ -30,7 +30,7 @@ export const getActions = ({
 }: GetActionsProps) =>
   tool({
     description:
-      'Get related actions for the selected app. Run again if you don\'t find any actions',
+      'Get related actions for the selected app. Run again if it returns exposedToolsCount as 0',
     parameters: z.object({
       app: z.string().describe(`The key of the app to get actions for`),
       query: z

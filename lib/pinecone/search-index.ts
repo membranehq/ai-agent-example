@@ -57,29 +57,25 @@ export async function searchIndex({
     query,
   });
 
-  const results = (await pcIndex.namespace(namespace).searchRecords({
+  const results = await pcIndex.namespace(namespace).searchRecords({
     fields: ['*'],
     query: {
       topK,
       inputs: { text: query },
       ...(filter ? { filter } : {}),
     },
-  })) as {
-    result: {
-      hits: {
-        _id: string;
-        _score: number;
-        fields: Exclude<ToolIndexItem, 'id'>;
-      }[];
-    };
-  };
+    rerank: {
+      model: 'bge-reranker-v2-m3',
+      rankFields: ['text'],
+    },
+  });
 
   console.log(`Found ${results.result.hits.length} results`);
 
   const relatedActions = results.result.hits.map((hit) => ({
     ...hit.fields,
     id: hit._id,
-  }));
+  })) as ToolIndexItem[];
 
   return relatedActions;
 }
