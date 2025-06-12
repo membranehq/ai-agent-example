@@ -24,12 +24,14 @@ export async function getToolsFromMCP({
     },
   });
 
+  let tools = null;
+
   // Will throw an error is there are no tools so we need to catch it
   try {
-    const tools = await mcpClient.tools();
-    return tools;
+    tools = await mcpClient.tools();
   } catch (error) {
     console.log(error);
-    return {};
   }
+
+  return { tools: tools || {}, mcpClient };
 }

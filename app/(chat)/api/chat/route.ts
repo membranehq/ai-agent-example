@@ -6,7 +6,7 @@ import {
   streamText,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
-import { systemPrompt } from '@/lib/ai/prompts';
+import { getAfterToolExposePrompt, systemPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById,
   getChatById,
@@ -27,13 +27,10 @@ import { differenceInSeconds } from 'date-fns';
 import { ChatSDKError } from '@/lib/errors';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
 import { getRelevantApps } from '@/lib/ai/tools/get-relevant-apps';
-import { getActions } from '@/lib/ai/tools/expose-tools';
+import { getActions } from '@/lib/ai/tools/get-actions';
 import { connectApp } from '@/lib/ai/tools/connect-app';
-import { toolsMetadataToTools } from '@/lib/tools-metadata-to-tools';
-import type { ToolIndexItem } from '@/lib/types';
 import { getMoreRelevantApp } from '@/lib/ai/tools/get-more-relevant-app';
-
-export const maxDuration = 60;
+import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
@@ -109,21 +106,42 @@ export async function POST(request: Request) {
     const integrationAppCustomerAccessToken =
       await generateIntegrationAppCustomerAccessToken({
         id: session.user.id,
-        name: session.user.name ?? '',
+        name: session.user.name,
       });
 
-    const actionList =
-      ((chat?.exposedTools as any)?.toolList as ToolIndexItem[]) ?? [];
-
-    const exposedTools = await toolsMetadataToTools({
-      toolsIndexItems: actionList,
-      integrationAppCustomerAccessToken,
-      includeConfigureTools: false,
+    const { tools: mcpTools, mcpClient } = await getToolsFromMCP({
+      token: integrationAppCustomerAccessToken,
     });
+
+    const user = {
+      id: session.user.id,
+      name: session.user.name ?? '',
+    };
+
+    const defaultTools = {
+      getRelevantApps: getRelevantApps({
+        user,
+      }),
+      getMoreRelevantApp: getMoreRelevantApp,
+      getActions: getActions({
+        chatId: id,
+        integrationAppCustomerAccessToken,
+        user,
+      }),
+      connectApp: connectApp(integrationAppCustomerAccessToken),
+    };
+
+    const exposedTools = await getChatExposedTools({
+      chatId: id,
+    });
+
+    const activeTools = [...exposedTools, ...Object.keys(defaultTools)];
 
     const stream = createDataStream({
       execute: async (dataStream) => {
         const result = streamText({
+          experimental_activeTools:
+            activeTools as (keyof typeof defaultTools)[],
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt(),
           messages,
@@ -139,15 +157,8 @@ export async function POST(request: Request) {
             console.log(error);
           },
           tools: {
-            ...exposedTools,
-            getRelevantApps: getRelevantApps,
-            getMoreRelevantApp: getMoreRelevantApp,
-            getActions: getActions({
-              chatId: id,
-              integrationAppCustomerAccessToken,
-              userId: session.user.id,
-            }),
-            connectApp: connectApp(integrationAppCustomerAccessToken),
+            ...mcpTools,
+            ...defaultTools,
           },
           onFinish: async ({ response }) => {
             if (session.user?.id) {
@@ -206,7 +217,8 @@ export async function POST(request: Request) {
           if (exposeToolResult) {
             if (
               exposeToolResult.success &&
-              exposeToolResult.data?.exposedToolsCount
+              exposeToolResult.data?.exposedToolsCount &&
+              exposeToolResult.data.exposedToolsCount > 0
             ) {
               shouldPopulateTools = true;
             }
@@ -220,36 +232,33 @@ export async function POST(request: Request) {
             chatId: id,
           });
 
-          const derivedTools = await toolsMetadataToTools({
-            toolsIndexItems: exposedTools.toolsList,
-            integrationAppCustomerAccessToken,
-            includeConfigureTools: false,
-          });
-
-          console.log(
-            `The following tools were exposed: ${Object.keys(derivedTools).join(`, `)} 
-            Now one of the tools will be called
-            `,
+          const afterToolExposePrompt = getAfterToolExposePrompt(
+            Object.keys(exposedTools),
           );
+
+          const { tools: mcpTools, mcpClient } = await getToolsFromMCP({
+            token: integrationAppCustomerAccessToken,
+          });
 
           const result1 = streamText({
             model: myProvider.languageModel(selectedChatModel),
-            system: `
-              You're a friendly task assistant, based on task user is trying to perform specified in the messages, call the appropriate tool from this list: 
-              ${Object.keys(derivedTools).join(', ')} to perform the task specified by the user
-            `,
+            system: afterToolExposePrompt,
             messages,
             maxSteps: 5,
             experimental_generateMessageId: generateUUID,
             toolCallStreaming: true,
+            experimental_activeTools: exposedTools as (keyof typeof mcpTools)[],
             tools: {
-              ...derivedTools,
+              ...mcpTools,
             },
+            toolChoice: 'required',
             onError: (error) => {
               console.error('RESULT2: Error in chat route');
               console.error(error);
             },
             onFinish: async ({ response }) => {
+              await mcpClient.close();
+
               try {
                 const assistantId = getTrailingMessageId({
                   messages: response.messages.filter(
@@ -299,9 +308,7 @@ export async function POST(request: Request) {
     return new Response(stream);
   } catch (error) {
     console.error('Error in chat route', error);
-    if (error instanceof ChatSDKError) {
-      return error.toResponse();
-    }
+    return new ChatSDKError('others').toResponse();
   }
 }
 

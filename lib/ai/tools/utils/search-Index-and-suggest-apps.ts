@@ -22,15 +22,22 @@ export async function searchIndexAndSuggestApps({
     // E.g: notion: create a page
     const appName = query.includes(':') ? query.split(':')[0]?.trim() : null;
 
+    const filter = appName
+      ? {
+          integrationKey: appName,
+        }
+      : undefined;
+
     const searchActionResult = await searchIndex({
       query,
       topK: 10,
       index,
       namespace,
+      filter,
     });
 
     const appNameIsExactMatch = searchActionResult.some(
-      (action) => action.integrationName === appName,
+      (action) => action.integrationKey === appName,
     );
 
     if (appName && appNameIsExactMatch) {
@@ -42,7 +49,7 @@ export async function searchIndexAndSuggestApps({
     }
 
     const apps = Array.from(
-      new Set(searchActionResult.map((action) => action.integrationName)),
+      new Set(searchActionResult.map((action) => action.integrationKey)),
     );
 
     if (appName && !appNameIsExactMatch) {

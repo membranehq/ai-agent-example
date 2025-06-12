@@ -1,9 +1,9 @@
 import { verifyIntegrationAppToken } from '@/lib/integration-app/verifyIntegrationAppToken';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { handleOnConnect } from './handleOnConnect';
-import { handleOnDisconnect } from './handleOnDisconnect';
 import { getUserById } from '@/lib/db/queries';
+import { removeToolsForAppFromIndex } from '@/lib/pinecone/remove-tools-for-app-from-index';
+import { indexMcpToolsForApp } from '@/lib/pinecone/index-user-mcp-tools-for-app';
 
 const schema = z.object({
   eventType: z.string(),
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
   const _user = {
     id: user.id,
-    name: user.name ?? '',
+    name: user.name,
   };
 
   /**
@@ -51,19 +51,19 @@ export async function POST(request: NextRequest) {
 
   switch (eventType) {
     case 'connection.created':
-      await handleOnConnect({
+      await indexMcpToolsForApp({
         user: _user,
         app: data.connection.integration.key,
       });
       break;
     case 'connection.deleted':
-      await handleOnDisconnect({
+      await removeToolsForAppFromIndex({
         user: _user,
         app: data.connection.integration.key,
       });
       break;
     case 'connection.disconnected':
-      await handleOnDisconnect({
+      await removeToolsForAppFromIndex({
         user: _user,
         app: data.connection.integration.key,
       });

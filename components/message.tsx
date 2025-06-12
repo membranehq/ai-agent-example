@@ -17,6 +17,7 @@ import { MessageEditor } from './message-editor';
 import { MessageReasoning } from './message-reasoning';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { ConnectButton } from './integration-app/connect-button';
+import { AppSelectionButton } from './integration-app/app-selection-button';
 
 const PurePreviewMessage = ({
   chatId,
@@ -40,6 +41,54 @@ const PurePreviewMessage = ({
   append: UseChatHelpers['append'];
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
+
+  const renderToolResult = (toolName: string, result: any) => {
+    if (toolName === 'connectApp') {
+      return (
+        <ConnectButton
+          integrationKey={result.integrationKey}
+          logoUri={result.logoUri}
+          append={append}
+        />
+      );
+    }
+
+    if (toolName === 'getRelevantApps' || toolName === 'getMoreRelevantApp') {
+      //Show a message if it's just one app
+      if (result.apps?.length === 1) {
+        return (
+          <div className="text-sm text-muted-foreground">
+            Found one relevant app: {result.apps[0]}
+          </div>
+        );
+      }
+
+      return (
+        <div className="flex flex-wrap gap-2">
+          {result.apps?.map((app: any) => (
+            <AppSelectionButton
+              key={app}
+              integrationKey={app}
+              onClick={() => append({ role: 'user', content: app })}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-muted p-4 rounded-lg">
+        <details className="group">
+          <summary className="cursor-pointer text-sm text-muted-foreground mb-2 hover:text-foreground">
+            See more
+          </summary>
+          <pre className="text-sm overflow-x-auto mt-2">
+            {JSON.stringify(result, null, 2)}
+          </pre>
+        </details>
+      </div>
+    );
+  };
 
   return (
     <AnimatePresence>
@@ -170,7 +219,7 @@ const PurePreviewMessage = ({
                           <div className="animate-spin">
                             <LoaderIcon size={14} />
                           </div>
-                          <span>Running {toolName}...</span>
+                          <span>Working on it ({toolName})...</span>
                         </div>
                       </div>
                     </div>
@@ -182,35 +231,17 @@ const PurePreviewMessage = ({
 
                   return (
                     <div key={toolCallId}>
-                      {![
+                      {/* {![
                         'getActions',
                         'getRelevantApps',
                         'connectApp',
                         'getMoreRelevantApp',
-                      ].includes(toolName) && (
-                        <div className="text-sm text-muted-foreground mb-2">
-                          {toolName}
-                        </div>
-                      )}
-
-                      {toolName === 'connectApp' ? (
-                        <ConnectButton
-                          integrationKey={result.integrationKey}
-                          logoUri={result.logoUri}
-                          append={append}
-                        />
-                      ) : (
-                        <div className="bg-muted p-4 rounded-lg">
-                          <details className="group">
-                            <summary className="cursor-pointer text-sm text-muted-foreground mb-2 hover:text-foreground">
-                              See more
-                            </summary>
-                            <pre className="text-sm overflow-x-auto mt-2">
-                              {JSON.stringify(result, null, 2)}
-                            </pre>
-                          </details>
-                        </div>
-                      )}
+                      ].includes(toolName) && ( */}
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {toolName}
+                      </div>
+                      {/* )} */}
+                      {renderToolResult(toolName, result)}
                     </div>
                   );
                 }

@@ -2,22 +2,35 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { IntegrationAppClient } from '@integration-app/sdk';
 import { updateChatExposedTools } from '@/lib/db/queries';
-
 import { searchIndex } from '@/lib/pinecone/search-index';
+import { indexMcpToolsForApp } from '@/lib/pinecone/index-user-mcp-tools-for-app';
 
 interface GetActionsProps {
   chatId: string;
   integrationAppCustomerAccessToken: string;
-  userId: string;
-}
-
+  user: {
+    id: string;
+    name: string;
+  };
+} /**
+ * Ensures that user is connected to an app and exposes tools for the app
+ *
+ * Exposure process:
+ * - Make sure user is connected to the app
+ * - Get tools for the app from an MCP server and index them
+ * - Find the most relevant tools for the user query
+ * - Store the tools in the chat context
+ *
+ * IF some tools were added to the chat context, we call the LLM again with the chat context tools
+ */
 export const getActions = ({
   chatId,
   integrationAppCustomerAccessToken,
-  userId,
+  user,
 }: GetActionsProps) =>
   tool({
-    description: 'Get actions for the selected app.',
+    description:
+      'Get related actions for the selected app. Run again if you don\'t find any actions',
     parameters: z.object({
       app: z.string().describe(`The key of the app to get actions for`),
       query: z
@@ -43,19 +56,31 @@ export const getActions = ({
         const hasConnectionToApp = result.items.length > 0;
 
         if (hasConnectionToApp) {
+          ///////////////////////////////////////
+          // Index tools retrieved from MCP
+          ///////////////////////////////////////
+          await indexMcpToolsForApp({
+            user,
+            app,
+          });
+
+          ///////////////////////////////////////////
+          // Find the most relevant tools for the user
+          // query from their user-tools index
+          ///////////////////////////////////////////
           const searchActionResult = await searchIndex({
             query,
             topK: 1,
             filter: {
-              integrationName: app,
+              integrationKey: app,
             },
             index: 'client-tools',
-            namespace: userId,
+            namespace: user.id,
           });
 
           await updateChatExposedTools({
             chatId,
-            toolsList: searchActionResult,
+            toolsList: searchActionResult.map((tool) => tool.toolKey),
           });
 
           return {

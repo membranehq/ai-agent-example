@@ -13,7 +13,7 @@ interface HandleOnDisconnectProps {
  * On disconnect, we want to remove all tools for the disconnected app for the user.
  */
 
-export async function handleOnDisconnect({
+export async function removeToolsForAppFromIndex({
   user,
   app,
 }: HandleOnDisconnectProps) {
@@ -29,7 +29,7 @@ export async function handleOnDisconnect({
     namespace: user.id,
     index: 'client-tools',
     filter: {
-      integrationName: app,
+      integrationKey: app,
       userId: user.id,
     },
   });
