@@ -29,7 +29,8 @@ export const getActions = ({
   user,
 }: GetActionsProps) =>
   tool({
-    description: 'Get related actions for the selected app.',
+    description:
+      'Get related actions for the selected app. Run again if you don\'t find any actions',
     parameters: z.object({
       app: z.string().describe(`The key of the app to get actions for`),
       query: z

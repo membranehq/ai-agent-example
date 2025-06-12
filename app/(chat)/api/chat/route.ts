@@ -6,7 +6,7 @@ import {
   streamText,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
-import { systemPrompt } from '@/lib/ai/prompts';
+import { getAfterToolExposePrompt, systemPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById,
   getChatById,
@@ -232,10 +232,9 @@ export async function POST(request: Request) {
             chatId: id,
           });
 
-          const systemPrompt = `
-            You're a friendly task assistant, based on task user is trying to perform specified in the messages, call the appropriate tool from this list: 
-            ${Object.keys(exposedTools).join(', ')} to perform the task specified by the user
-          `;
+          const afterToolExposePrompt = getAfterToolExposePrompt(
+            Object.keys(exposedTools),
+          );
 
           const { tools: mcpTools, mcpClient } = await getToolsFromMCP({
             token: integrationAppCustomerAccessToken,
@@ -243,7 +242,7 @@ export async function POST(request: Request) {
 
           const result1 = streamText({
             model: myProvider.languageModel(selectedChatModel),
-            system: systemPrompt,
+            system: afterToolExposePrompt,
             messages,
             maxSteps: 5,
             experimental_generateMessageId: generateUUID,
