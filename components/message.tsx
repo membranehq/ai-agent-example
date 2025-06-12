@@ -219,7 +219,7 @@ const PurePreviewMessage = ({
                           <div className="animate-spin">
                             <LoaderIcon size={14} />
                           </div>
-                          <span>Working on it {toolName}...</span>
+                          <span>Working on it ({toolName})...</span>
                         </div>
                       </div>
                     </div>
