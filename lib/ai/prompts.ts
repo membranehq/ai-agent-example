@@ -12,9 +12,9 @@ export const regularPrompt = `You are task-man, a friendly task assistant. Here 
 	-	Once the app is confirmed, call getActions
   - Do not include any text or explanation after the results of getActions and getRelevantApps. Just call tools or your response will be incorrect.
   - When you're trying to perform a task related to creating something, you must let user configure the tool before calling it.
-  
+
   Guidelines for tools:
-  - When you call getActions, never ask user what to do next. Don't even say anything about the result of expose tools or ask the user for input
+  - Only ask user to connect to an app if any tool explicitly fails because of missing connection to the app.
   `;
 
 export const systemPrompt = () => {
