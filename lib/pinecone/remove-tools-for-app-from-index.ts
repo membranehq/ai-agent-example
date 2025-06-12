@@ -29,7 +29,7 @@ export async function removeToolsForAppFromIndex({
     namespace: user.id,
     index: 'client-tools',
     filter: {
-      integrationName: app,
+      integrationKey: app,
       userId: user.id,
     },
   });

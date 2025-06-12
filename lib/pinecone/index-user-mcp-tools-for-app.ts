@@ -27,10 +27,12 @@ export async function indexMcpToolsForApp({ user, app }: HandleConnectProps) {
   });
 
   // get tools for the app that was connected from MCP
-  const toolsForConnectedApp = await getToolsFromMCP({
+  const { tools: toolsForConnectedApp, mcpClient } = await getToolsFromMCP({
     token,
     app,
   });
+
+  await mcpClient.close();
 
   console.log(
     `We got ${Object.keys(toolsForConnectedApp).length} tools for the connected app: ${app}`,
@@ -51,24 +53,19 @@ export async function indexMcpToolsForApp({ user, app }: HandleConnectProps) {
     const tool = toolsForConnectedApp[toolKey];
 
     /**
-     * The MCP server puts the app name in the tool description
-     * e.g "FindById: Databases (Notion)"
-     * We want to extract the app name from the description.
+     * The MCP server puts the integration key at the start of the tool name
+     * e.g "notion_get-all-databases"
+     *
+     *
+     *  "notion_get-all-databases" ==> "notion"
      */
-    const match = tool?.description?.match(/\(([^)]+)\)/);
-    const integrationName = match ? match[1] : null;
-
-    const integrationSlug = integrationName
-      ?.toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
+    const integrationKey = toolKey.split('_')[0];
 
     const record = {
-      id: `${integrationSlug}_${toolKey}`, // TODO: add a unique id for the tool
+      id: `${integrationKey}_${toolKey}`,
       toolKey: toolKey,
       text: tool.description as string,
-      integrationName: integrationSlug as string,
-      // inputSchema: JSON.stringify(z.toJSONSchema(tool.parameters as any)),
+      integrationKey,
       userId: user.id,
     };
 

@@ -30,7 +30,7 @@ export async function searchIndexAndSuggestApps({
     });
 
     const appNameIsExactMatch = searchActionResult.some(
-      (action) => action.integrationName === appName,
+      (action) => action.integrationKey === appName,
     );
 
     if (appName && appNameIsExactMatch) {
@@ -42,7 +42,7 @@ export async function searchIndexAndSuggestApps({
     }
 
     const apps = Array.from(
-      new Set(searchActionResult.map((action) => action.integrationName)),
+      new Set(searchActionResult.map((action) => action.integrationKey)),
     );
 
     if (appName && !appNameIsExactMatch) {

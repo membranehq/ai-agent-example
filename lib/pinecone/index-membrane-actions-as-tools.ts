@@ -55,7 +55,7 @@ async function getAllWorkspaceActions() {
       ...allActionsForIntegration.map((action) => {
         return {
           id: `${integration.key}_${action.key}`,
-          integrationName: integration.key,
+          integrationKey: integration.key,
           toolKey: action.key,
           text: action.name,
         };

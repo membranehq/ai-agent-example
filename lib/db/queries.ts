@@ -577,7 +577,7 @@ export async function updateChatExposedTools({
   toolsList,
 }: {
   chatId: string;
-  toolsList: ToolIndexItem[];
+  toolsList: string[];
 }) {
   try {
     return await db
@@ -599,11 +599,9 @@ export async function getChatExposedTools({ chatId }: { chatId: string }) {
       .from(chat)
       .where(eq(chat.id, chatId));
 
-    console.log('selectedChat', selectedChat);
-
-    return selectedChat?.exposedTools as {
-      toolsList: ToolIndexItem[];
-    };
+    return (
+      (selectedChat?.exposedTools as { toolsList?: string[] })?.toolsList || []
+    );
   } catch (error) {
     throw new ChatSDKError(
       'bad_request:database',

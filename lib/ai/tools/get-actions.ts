@@ -58,7 +58,6 @@ export const getActions = ({
           ///////////////////////////////////////
           // Index tools retrieved from MCP
           ///////////////////////////////////////
-
           await indexMcpToolsForApp({
             user,
             app,
@@ -72,7 +71,7 @@ export const getActions = ({
             query,
             topK: 1,
             filter: {
-              integrationName: app,
+              integrationKey: app,
             },
             index: 'client-tools',
             namespace: user.id,
@@ -80,7 +79,7 @@ export const getActions = ({
 
           await updateChatExposedTools({
             chatId,
-            toolsList: searchActionResult,
+            toolsList: searchActionResult.map((tool) => tool.toolKey),
           });
 
           return {

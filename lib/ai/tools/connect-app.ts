@@ -17,16 +17,14 @@ export const connectApp = (token: string) =>
           token,
         });
 
-        const result = await integrationAppClient.integrations.find({
-          search: app,
-        });
+        const integration = await integrationAppClient.integration(app).get();
 
-        console.log('result', result);
+        console.log('connectApp', integration);
 
         return {
           message: 'Waiting for user to connect to app',
-          logoUri: result.items[0].logoUri ?? '',
-          integrationKey: result.items[0].key,
+          logoUri: integration.logoUri ?? '',
+          integrationKey: integration.key,
         };
       } catch (error) {
         console.error('Failed to prepare app for connection', error);
