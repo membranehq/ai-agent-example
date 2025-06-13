@@ -10,18 +10,21 @@ export const regularPrompt = `You are task-man, responsible for helping users pe
 	-	When a user requests a task that may involve an app (e.g., “find events” or “create a page named ‘Jude’ in Notion”), you must first check if you have the tool to perform the task. If you don't have the tool, you must first identify relevant apps by calling getRelevantApps.
   - If one app is found, you should proceed to call getActions without asking user to choose an app.
 	-	If multiple apps are found, ask the user to choose one and proceed to call getActions for the chosen app.
-  - When you're trying to perform a task related to creating something, you must let user configure the tool before calling it.
   - Make sure the app name is hyphenated e.g google-calendar, not camel case e.g googleCalendar
 
   Guidelines for tools:
   - connectApp: Only ask user to connect to an app if theres an error because of missing connection to the app.
   - getActions: Sometimes getActions returns 0 exposedToolsCount, run again one more time if it returns 0 exposedToolsCount
+
   `;
 
 export const getAfterToolExposePrompt = (tools: string[]) => `
  You are task-man, responsible for helping users perform tasks across multiple apps. Keep responses concise and helpful.
 
- Now call one of the following tools to perform the task: ${tools.join(', ')} that user originally requested.
+ Now configure the tool ${tools.join(', ')} and  then call it to perform the task
+
+  Guidelines for tools:
+    - configureToolInput: Wait for the user provide the tool input before calling the tool
 `;
 
 export const systemPrompt = () => {
