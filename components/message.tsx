@@ -53,40 +53,30 @@ const PurePreviewMessage = ({
       );
     }
 
-    if (toolName === 'getRelevantApps' || toolName === 'getMoreRelevantApp') {
-      //Show a message if it's just one app
-      if (result.apps?.length === 1) {
-        return (
-          <div className="text-sm text-muted-foreground">
-            Found one relevant app: {result.apps[0]}
-          </div>
-        );
-      }
-
-      return (
-        <div className="flex flex-wrap gap-2">
-          {result.apps?.map((app: any) => (
-            <AppSelectionButton
-              key={app}
-              integrationKey={app}
-              onClick={() => append({ role: 'user', content: app })}
-            />
-          ))}
-        </div>
-      );
-    }
-
     return (
-      <div className="bg-muted p-4 rounded-lg">
-        <details className="group">
-          <summary className="cursor-pointer text-sm text-muted-foreground mb-2 hover:text-foreground">
-            See more
-          </summary>
-          <pre className="text-sm overflow-x-auto mt-2">
-            {JSON.stringify(result, null, 2)}
-          </pre>
-        </details>
-      </div>
+      <>
+        <div className="bg-muted p-4 rounded-lg">
+          <details className="group">
+            <summary className="cursor-pointer text-sm text-muted-foreground mb-2 hover:text-foreground">
+              See more
+            </summary>
+            <pre className="text-sm overflow-x-auto mt-2">
+              {JSON.stringify(result, null, 2)}
+            </pre>
+          </details>
+        </div>
+
+        <div className="flex flex-row gap-2 mt-2">
+          {['getRelevantApps', 'getMoreRelevantApp'].includes(toolName) &&
+            result.apps?.map((app: any) => (
+              <AppSelectionButton
+                key={app}
+                integrationKey={app}
+                onClick={() => append({ role: 'user', content: app })}
+              />
+            ))}
+        </div>
+      </>
     );
   };
 
