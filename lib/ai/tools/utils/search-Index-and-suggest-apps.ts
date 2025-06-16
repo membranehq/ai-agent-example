@@ -30,7 +30,7 @@ export async function searchIndexAndSuggestApps({
 
     const searchActionResult = await searchIndex({
       query,
-      topK: 10,
+      topK: 6,
       index,
       namespace,
       // filter,
