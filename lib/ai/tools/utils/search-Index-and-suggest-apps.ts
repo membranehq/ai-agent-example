@@ -20,20 +20,20 @@ export async function searchIndexAndSuggestApps({
     // app-name: action
     // E.g: google-calendar: get events
     // E.g: notion: create a page
-    const appName = query.includes(':') ? query.split(':')[0]?.trim() : null;
+    const appName = query.includes(':') ? query.split(':')[0]?.trim()?.toLowerCase(): null;
 
-    const filter = appName
-      ? {
-          integrationKey: appName,
-        }
-      : undefined;
+    // const filter = appName
+    //   ? {
+    //       integrationKey: appName,
+    //     }
+    //   : undefined;
 
     const searchActionResult = await searchIndex({
       query,
       topK: 10,
       index,
       namespace,
-      filter,
+      // filter,
     });
 
     const appNameIsExactMatch = searchActionResult.some(

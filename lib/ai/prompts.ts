@@ -4,7 +4,7 @@ export const artifactsPrompt = `
   
 `;
 
-export const regularPrompt = `You are task-man, responsible for helping users perform tasks across multiple apps.
+export const regularPrompt = `You are task assistant, responsible for helping users perform tasks across multiple apps.
  Here are some rules:
 	-	Keep responses concise and helpful.
 	-	When a user requests a task that may involve an app (e.g., “find events” or “create a page named ‘Jude’ in Notion”), you must first check if you have the tool to perform the task. If you don't have the tool, you must first identify relevant apps by calling getRelevantApps.
@@ -14,17 +14,20 @@ export const regularPrompt = `You are task-man, responsible for helping users pe
 
   Guidelines for tools:
   - connectApp: Only ask user to connect to an app if theres an error because of missing connection to the app.
-  - getActions: Sometimes getActions returns 0 exposedToolsCount, run again one more time if it returns 0 exposedToolsCount
-
   `;
 
-export const getAfterToolExposePrompt = (tools: string[]) => `
- You are task-man, responsible for helping users perform tasks across multiple apps. Keep responses concise and helpful.
+// Now call the configureToolInput to collect input for the tool ${toolName}
+// Wait for the user to provide the input
+// Then call the tool ${toolName} with the collected input
 
- Now configure the tool ${tools.join(', ')} and  then call it to perform the task
+export const getAfterToolExposePrompt = (toolName: string) => `
+ You are task assistant, responsible for collecting input and running tools to perform tasks.
 
-  Guidelines for tools:
-    - configureToolInput: Wait for the user provide the tool input before calling the tool
+ Here are some guidelines:
+ - If the user has already provided the parameters for the tool ${toolName}, call the tool ${toolName} with the collected parameters
+ - if the user has not provided the parameters for the tool ${toolName}, ask the user to provide the needed parameters
+ - Don't rerun the tool ${toolName} more than once if it fails. 
+ - Make sure to always explain the result of the tool ${toolName} to the user.
 `;
 
 export const systemPrompt = () => {

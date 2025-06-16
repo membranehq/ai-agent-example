@@ -65,7 +65,7 @@ export async function indexMcpToolsForApp({ user, app }: HandleConnectProps) {
       id: `${integrationKey}_${toolKey}`,
       toolKey: toolKey,
       text: tool.description as string,
-      integrationKey,
+      integrationKey: integrationKey.toLowerCase(),
       userId: user.id,
     };
 
