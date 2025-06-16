@@ -26,7 +26,7 @@ export const getAfterToolExposePrompt = (toolName: string) => `
  Here are some guidelines:
  - If the user has already provided the parameters for the tool ${toolName}, call the tool ${toolName} with the collected parameters
  - if the user has not provided the parameters for the tool ${toolName}, ask the user to provide the needed parameters
- - Don't rerun the tool ${toolName} more than once if it fails. 
+ - Don't rerun the tool ${toolName} more than once
  - Make sure to always explain the result of the tool ${toolName} to the user.
 `;
 
