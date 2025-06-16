@@ -31,6 +31,7 @@ import { getActions } from '@/lib/ai/tools/get-actions';
 import { connectApp } from '@/lib/ai/tools/connect-app';
 import { getMoreRelevantApp } from '@/lib/ai/tools/get-more-relevant-app';
 import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
+// import { configureToolInput } from '@/lib/ai/tools/configureTool';
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
@@ -160,6 +161,7 @@ export async function POST(request: Request) {
             ...mcpTools,
             ...defaultTools,
           },
+        
           onFinish: async ({ response }) => {
             if (session.user?.id) {
               try {
@@ -233,7 +235,7 @@ export async function POST(request: Request) {
           });
 
           const afterToolExposePrompt = getAfterToolExposePrompt(
-            Object.keys(exposedTools),
+            Object.keys(exposedTools)[0],
           );
 
           const { tools: mcpTools, mcpClient } = await getToolsFromMCP({
@@ -247,9 +249,12 @@ export async function POST(request: Request) {
             maxSteps: 5,
             experimental_generateMessageId: generateUUID,
             toolCallStreaming: true,
-            experimental_activeTools: exposedTools as (keyof typeof mcpTools)[],
+            experimental_activeTools: [...exposedTools],
             tools: {
               ...mcpTools,
+                // configureToolInput: configureToolInput(
+                //   Object.keys(exposedTools)[0],
+                // ),
             },
             toolChoice: 'required',
             onError: (error) => {
