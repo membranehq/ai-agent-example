@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckIcon, ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
+import { CheckIcon, ChevronRightIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from './ui/button';
 
@@ -8,12 +8,14 @@ interface ToolResultDisplayProps {
   toolName: string;
   result: any;
   children?: React.ReactNode;
+  input: any;
 }
 
 export const ToolResultDisplay = ({
   toolName,
   result,
   children,
+  input,
 }: ToolResultDisplayProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -43,13 +45,29 @@ export const ToolResultDisplay = ({
         <div
           className={`overflow-hidden transition-all duration-300 ease-in-out ${
             isExpanded
-              ? 'max-h-64 opacity-100 mt-3 pt-3 border-t border-border'
+              ? 'max-h-64 opacity-100 mt-3 pt-3 border-t border-border overflow-y-auto'
               : 'max-h-0 opacity-0'
           }`}
         >
-          <pre className="text-sm overflow-x-auto bg-background p-3 rounded border">
-            {JSON.stringify(result, null, 2)}
-          </pre>
+          <div className="space-y-3">
+            <div>
+              <span className="text-xs font-medium text-muted-foreground mb-1 block">
+                Input
+              </span>
+              <pre className="text-sm overflow-x-auto bg-background p-3 rounded border">
+                {JSON.stringify(input, null, 2)}
+              </pre>
+            </div>
+
+            <div>
+              <span className="text-xs font-medium text-muted-foreground mb-1 block">
+                Output
+              </span>
+              <pre className="text-sm overflow-x-auto bg-background p-3 rounded border">
+                {JSON.stringify(result, null, 2)}
+              </pre>
+            </div>
+          </div>
         </div>
       </div>
       {children}

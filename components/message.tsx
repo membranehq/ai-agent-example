@@ -53,9 +53,11 @@ const PurePreviewMessage = ({
   const renderToolResult = ({
     toolName,
     result,
+    args,
   }: {
     toolName: string;
     result: any;
+    args:any
   }) => {
     if (toolName === 'connectApp') {
       return (
@@ -89,6 +91,7 @@ const PurePreviewMessage = ({
       <ToolResultDisplay
         toolName={simplerName[toolName] ?? toolName}
         result={result}
+        input={args}
       >
         {['getRelevantApps', 'getMoreRelevantApp'].includes(toolName) &&
           result.apps?.length > 1 && (
@@ -210,7 +213,7 @@ const PurePreviewMessage = ({
 
               if (type === 'tool-invocation') {
                 const { toolInvocation } = part;
-                const { toolName, toolCallId, state, args } = toolInvocation;
+                const { toolName, toolCallId, state } = toolInvocation;
 
                 if (state === 'call') {
                   return (
@@ -222,11 +225,11 @@ const PurePreviewMessage = ({
                 }
 
                 if (state === 'result') {
-                  const { result } = toolInvocation;
+                  const { result, args } = toolInvocation;
 
                   return (
                     <div key={toolCallId}>
-                      {renderToolResult({ toolName, result })}
+                      {renderToolResult({ toolName, result, args })}
                     </div>
                   );
                 }
