@@ -5,7 +5,7 @@ import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import { memo, useState } from 'react';
 import type { Vote } from '@/lib/db/schema';
-import { PencilEditIcon, SparklesIcon, LoaderIcon } from './icons';
+import { PencilEditIcon, SparklesIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
@@ -18,6 +18,7 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import { ConnectButton } from './integration-app/connect-button';
 import { AppSelectionButton } from './integration-app/app-selection-button';
 import { JsonSchemaForm } from './json-schema-form';
+import { Loader } from 'lucide-react';
 
 const PurePreviewMessage = ({
   chatId,
@@ -213,18 +214,9 @@ const PurePreviewMessage = ({
 
                 if (state === 'call') {
                   return (
-                    <div key={toolCallId}>
-                      <div className="text-sm text-muted-foreground mb-2">
-                        {toolName}
-                      </div>
-                      <div className="animate-pulse">
-                        <div className="text-muted-foreground flex items-center gap-2">
-                          <div className="animate-spin">
-                            <LoaderIcon size={14} />
-                          </div>
-                          <span>Working on it ({toolName})...</span>
-                        </div>
-                      </div>
+                    <div key={toolCallId} className="flex flex-row gap-2">
+                      <Loader size={20} className="animate-spin" />
+                      Thinking...
                     </div>
                   );
                 }
