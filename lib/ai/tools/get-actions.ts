@@ -82,7 +82,7 @@ export const getActions = ({
             async () => {
               const results = await searchIndex({
                 query,
-                topK: 1,
+                topK: 5,
                 index: 'client-tools',
                 namespace: user.id,
               });
