@@ -62,7 +62,7 @@ export async function searchIndex({
     query: {
       topK,
       inputs: { text: query },
-      // ...(filter ? { filter } : {}),
+      ...(filter ? { filter } : {}),
     },
     rerank: {
       model: 'bge-reranker-v2-m3',

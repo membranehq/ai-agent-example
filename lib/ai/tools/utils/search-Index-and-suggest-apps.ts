@@ -24,11 +24,18 @@ export async function searchIndexAndSuggestApps({
       ? query.split(':')[0]?.trim()?.toLowerCase()
       : null;
 
+    const filter = appName
+      ? {
+          integrationKey: appName,
+        }
+      : undefined;
+
     const searchActionResult = await searchIndex({
       query,
       topK: 6,
       index,
       namespace,
+      filter,
     });
 
     const appNameIsExactMatch = searchActionResult.some(
