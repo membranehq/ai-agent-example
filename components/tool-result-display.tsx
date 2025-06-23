@@ -10,7 +10,6 @@ interface ToolResultDisplayProps {
   children?: React.ReactNode;
 }
 
-
 export const ToolResultDisplay = ({
   toolName,
   result,
@@ -20,7 +19,7 @@ export const ToolResultDisplay = ({
 
   return (
     <>
-      <div className="bg-muted p-4 rounded-lg">
+      <div className="bg-muted p-4 rounded-lg mr-10">
         <div className="flex items-center gap-2">
           <CheckIcon strokeWidth={3} size={18} className="text-green-600" />
           <span className="text-sm font-medium text-foreground">
@@ -29,24 +28,29 @@ export const ToolResultDisplay = ({
           <Button
             variant="ghost"
             size="sm"
-            className="ml-auto size-6 p-0"
+            className="ml-auto size-6 p-0 transition-transform duration-200"
             onClick={() => setIsExpanded(!isExpanded)}
           >
-            {isExpanded ? (
-              <ChevronDownIcon size={14} />
-            ) : (
-              <ChevronRightIcon size={14} />
-            )}
+            <ChevronRightIcon
+              size={14}
+              className={`transition-transform duration-200 ${
+                isExpanded ? 'rotate-90' : 'rotate-0'
+              }`}
+            />
           </Button>
         </div>
 
-        {isExpanded && (
-          <div className="mt-3 pt-3 border-t border-border">
-            <pre className="text-sm overflow-x-auto bg-background p-3 rounded border">
-              {JSON.stringify(result, null, 2)}
-            </pre>
-          </div>
-        )}
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isExpanded
+              ? 'max-h-64 opacity-100 mt-3 pt-3 border-t border-border'
+              : 'max-h-0 opacity-0'
+          }`}
+        >
+          <pre className="text-sm overflow-x-auto bg-background p-3 rounded border">
+            {JSON.stringify(result, null, 2)}
+          </pre>
+        </div>
       </div>
       {children}
     </>
