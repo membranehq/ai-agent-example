@@ -42,7 +42,13 @@ const PurePreviewMessage = ({
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
 
-  const renderToolResult = (toolName: string, result: any) => {
+  const renderToolResult = ({
+    toolName,
+    result,
+  }: {
+    toolName: string;
+    result: any;
+  }) => {
     if (toolName === 'connectApp') {
       return (
         <ConnectButton
@@ -203,11 +209,9 @@ const PurePreviewMessage = ({
 
               if (type === 'tool-invocation') {
                 const { toolInvocation } = part;
-                const { toolName, toolCallId, state } = toolInvocation;
+                const { toolName, toolCallId, state, args } = toolInvocation;
 
                 if (state === 'call') {
-                  const { args } = toolInvocation;
-
                   return (
                     <div key={toolCallId}>
                       <div className="text-sm text-muted-foreground mb-2">
@@ -230,7 +234,7 @@ const PurePreviewMessage = ({
 
                   return (
                     <div key={toolCallId}>
-                      {renderToolResult(toolName, result)}
+                      {renderToolResult({ toolName, result })}
                     </div>
                   );
                 }

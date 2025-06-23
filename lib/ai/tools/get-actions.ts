@@ -4,7 +4,6 @@ import { IntegrationAppClient } from '@integration-app/sdk';
 import { updateChatExposedTools } from '@/lib/db/queries';
 import { searchIndex } from '@/lib/pinecone/search-index';
 import { indexMcpToolsForApp } from '@/lib/pinecone/index-user-mcp-tools-for-app';
-import { Pinecone } from '@pinecone-database/pinecone';
 import pRetry from 'p-retry';
 
 interface GetActionsProps {
@@ -20,7 +19,7 @@ interface GetActionsProps {
  * Exposure process:
  * - Make sure user is connected to the app
  * - Get tools for the app from an MCP server and index them
- * - Find the most relevant tools for the user query, if no results are found, 
+ * - Find the most relevant tools for the user query, if no results are found,
  * retry a few times to give the index time to stabilize
  * - Store the tools in the chat context
  *
@@ -74,7 +73,7 @@ export const getActions = ({
           ///////////////////////////////////////////
 
           /**
-           * Sometimes the search might return no results right after indexing(ideally 
+           * Sometimes the search might return no results right after indexing(ideally
            * we should always get results even if they are not relevant)
            * Let's retry a few times to give the index time to stabilize
            */

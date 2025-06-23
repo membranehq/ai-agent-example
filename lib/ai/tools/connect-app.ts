@@ -5,7 +5,7 @@ import { z } from 'zod';
 export const connectApp = (token: string) =>
   tool({
     description:
-      "Helps user to connect to an app when they don't have a connection to it, it renders a button to connect to the app, and sends a message called `done` when the user has connected to the app",
+      "Helps user to connect to an app when they don't have a connection to it, it renders a button to connect to the app. When the user has connected to the app, it sends a message `done`",
     parameters: z.object({
       app: z.string().describe('The key of the app to connect to'),
     }),

@@ -17,23 +17,18 @@ export async function searchIndexAndSuggestApps({
 }> {
   try {
     // If query contains an app name it should be in this format:
-    // app-name: action
+    // integration-key: action
     // E.g: google-calendar: get events
     // E.g: notion: create a page
-    const appName = query.includes(':') ? query.split(':')[0]?.trim()?.toLowerCase(): null;
-
-    // const filter = appName
-    //   ? {
-    //       integrationKey: appName,
-    //     }
-    //   : undefined;
+    const appName = query.includes(':')
+      ? query.split(':')[0]?.trim()?.toLowerCase()
+      : null;
 
     const searchActionResult = await searchIndex({
       query,
       topK: 6,
       index,
       namespace,
-      // filter,
     });
 
     const appNameIsExactMatch = searchActionResult.some(
@@ -51,7 +46,7 @@ export async function searchIndexAndSuggestApps({
     const apps = Array.from(
       new Set(
         searchActionResult
-          .map((action) => action.integrationKey)
+          .map((result) => result.integrationKey)
           .filter((app) => Boolean(app)),
       ),
     );
@@ -60,7 +55,11 @@ export async function searchIndexAndSuggestApps({
       return {
         apps,
         query,
-        answer: `I couldn't find a match for ${appName}, Do you mean ${apps.join(', ')}?`,
+        answer: `I couldn't find a match for ${appName}, ${
+          index === 'client-tools'
+            ? 'Let me try to do a more detailed search...'
+            : `Do you mean ${apps.join(', ')}?`
+        }`,
       };
     }
 
