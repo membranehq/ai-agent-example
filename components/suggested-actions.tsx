@@ -20,6 +20,12 @@ function PureSuggestedActions({
 }: SuggestedActionsProps) {
   const suggestedActions = [
     {
+      title: 'Send an',
+      label: 'email',
+      action: 'Send an email',
+      icon: 'https://static.integration.app/connectors/gmail/logo.png',
+    },
+    {
       title: 'Check my',
       label: 'Gmail inbox',
       action: 'Show me my recent Gmail messages',
