@@ -14,7 +14,6 @@ import { cn, sanitizeText } from '@/lib/utils';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
-import { MessageReasoning } from './message-reasoning';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { ConnectButton } from './integration-app/connect-button';
 import { AppSelectionButton } from './integration-app/app-selection-button';
@@ -62,7 +61,7 @@ const PurePreviewMessage = ({
             onSubmit={(data) => {
               append({
                 role: 'user',
-                content: data 
+                content: data,
               });
             }}
           />
@@ -148,16 +147,6 @@ const PurePreviewMessage = ({
             {message.parts?.map((part, index) => {
               const { type } = part;
               const key = `message-${message.id}-part-${index}`;
-
-              if (type === 'reasoning') {
-                return (
-                  <MessageReasoning
-                    key={key}
-                    isLoading={isLoading}
-                    reasoning={part.reasoning}
-                  />
-                );
-              }
 
               if (type === 'text') {
                 if (mode === 'view') {
