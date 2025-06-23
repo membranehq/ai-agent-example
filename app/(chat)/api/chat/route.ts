@@ -161,7 +161,7 @@ export async function POST(request: Request) {
             ...mcpTools,
             ...defaultTools,
           },
-        
+
           onFinish: async ({ response }) => {
             if (session.user?.id) {
               try {
@@ -234,9 +234,7 @@ export async function POST(request: Request) {
             chatId: id,
           });
 
-          const afterToolExposePrompt = getAfterToolExposePrompt(
-            Object.keys(exposedTools)[0],
-          );
+          const afterToolExposePrompt = getAfterToolExposePrompt();
 
           const { tools: mcpTools, mcpClient } = await getToolsFromMCP({
             token: integrationAppCustomerAccessToken,
@@ -252,9 +250,9 @@ export async function POST(request: Request) {
             experimental_activeTools: [...exposedTools],
             tools: {
               ...mcpTools,
-                // configureToolInput: configureToolInput(
-                //   Object.keys(exposedTools)[0],
-                // ),
+              // configureToolInput: configureToolInput(
+              //   Object.keys(exposedTools)[0],
+              // ),
             },
             toolChoice: 'required',
             onError: (error) => {

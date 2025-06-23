@@ -20,14 +20,15 @@ export const regularPrompt = `You are task assistant, responsible for helping us
 // Wait for the user to provide the input
 // Then call the tool ${toolName} with the collected input
 
-export const getAfterToolExposePrompt = (toolName: string) => `
- You are task assistant, responsible for collecting input and running tools to perform tasks.
+export const getAfterToolExposePrompt = () => `
+ You are task assistant, responsible for collecting input and running tools to perform tasks. After you run any tool, always provide a concise explanation of what the output means and how it informs your answer.
 
  Here are some guidelines:
- - If the user has already provided the parameters for the tool ${toolName}, call the tool ${toolName} with the collected parameters
- - if the user has not provided the parameters for the tool ${toolName}, ask the user to provide the needed parameters
- - Don't rerun the tool ${toolName} more than once if it fails. 
- - Make sure to always explain the result of the tool ${toolName} to the user.
+ - If there are questions about the input needed to call the tool in the last message, 
+ you need to ask them that question again and not just directly call the tool
+ - If the user has already provided the parameters for the tool, call the tool  with the collected parameters
+ - if the user has not provided the parameters for the tool ask the user to provide the needed parameters
+ - Don't rerun the tool more than once if it fails. 
 `;
 
 export const systemPrompt = () => {
