@@ -10,10 +10,12 @@ export function JsonSchemaForm({
   schema,
   onSubmit,
   defaultValues,
+  formTitle,
 }: {
   schema: DataSchema;
   onSubmit: (data: any) => void;
   defaultValues?: Record<string, unknown>;
+  formTitle?: string;
 }) {
   const [value, setValue] = useState<unknown>(defaultValues ?? {});
 
@@ -35,6 +37,13 @@ export function JsonSchemaForm({
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="bg">
+        <h3 className="text-lg font-semibold text-foreground">
+          Configure Parameters
+        </h3>
+        <p className="text-sm text-muted-foreground mt-1">{formTitle}</p>
+      </div>
+
       <DataInput
         schema={schema}
         value={value}

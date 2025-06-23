@@ -17,9 +17,14 @@ export const renderForm = (token: string) =>
       inputsAlreadyProvided: z
         .record(z.string())
         .describe('The inputs already provided for the tool make'),
+      formTitle: z
+        .string()
+        .describe(
+          'The title of the form, that describes what the user should fill in',
+        ),
     }),
 
-    execute: async ({ toolName, inputsAlreadyProvided }) => {
+    execute: async ({ toolName, inputsAlreadyProvided, formTitle }) => {
       const [integrationKey, ...actionKeyArray] = toolName.split('_');
 
       const membrane = new IntegrationAppClient({
@@ -39,6 +44,7 @@ export const renderForm = (token: string) =>
         message: `Now, use this information to render a form to collect input for the tool`,
         toolInputSchema: action.inputSchema,
         inputsAlreadyProvided,
+        formTitle,
       };
     },
   });
