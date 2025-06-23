@@ -247,6 +247,7 @@ export async function POST(request: Request) {
             maxSteps: 1,
             experimental_generateMessageId: generateUUID,
             toolCallStreaming: true,
+            // @ts-ignore
             experimental_activeTools: [...exposedTools, 'renderForm'],
             tools: {
               ...mcpTools,
