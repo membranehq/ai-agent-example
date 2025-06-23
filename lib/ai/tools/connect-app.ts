@@ -11,15 +11,11 @@ export const connectApp = (token: string) =>
     }),
     execute: async ({ app }) => {
       try {
-        console.log('token', token);
-
         const integrationAppClient = new IntegrationAppClient({
           token,
         });
 
         const integration = await integrationAppClient.integration(app).get();
-
-        console.log('connectApp', integration);
 
         return {
           message: 'Waiting for user to connect to app',

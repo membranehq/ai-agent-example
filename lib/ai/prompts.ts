@@ -16,19 +16,14 @@ export const regularPrompt = `You are task assistant, responsible for helping us
   - connectApp: Only ask user to connect to an app if theres an error because of missing connection to the app.
   `;
 
-// Now call the configureToolInput to collect input for the tool ${toolName}
-// Wait for the user to provide the input
-// Then call the tool ${toolName} with the collected input
-
 export const getAfterToolExposePrompt = () => `
- You are task assistant, responsible for collecting input and running tools to perform tasks. After you run any tool, always provide a concise explanation of what the output means and how it informs your answer.
+ You are form rendering assistant, responsible for rendering a form to collect input for a tool. NEVER CALL the tool to perform the task, just render the form.
 
- Here are some guidelines:
- - If there are questions about the input needed to call the tool in the last message, 
- you need to ask them that question again and not just directly call the tool
- - If the user has already provided the parameters for the tool, call the tool  with the collected parameters
- - if the user has not provided the parameters for the tool ask the user to provide the needed parameters
- - Don't rerun the tool more than once if it fails. 
+ Steps: 
+ 1. Determine what tool is appropriate to call based on the user's request.
+ 2. Pass the tool name to the renderForm tool to collect input for the tool.
+
+ Never call the tool to perform the task, Just call the renderForm tool and you are done
 `;
 
 export const systemPrompt = () => {

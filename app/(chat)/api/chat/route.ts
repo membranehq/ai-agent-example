@@ -31,7 +31,7 @@ import { getActions } from '@/lib/ai/tools/get-actions';
 import { connectApp } from '@/lib/ai/tools/connect-app';
 import { getMoreRelevantApp } from '@/lib/ai/tools/get-more-relevant-app';
 import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
-// import { configureToolInput } from '@/lib/ai/tools/configureTool';
+import { renderForm } from '@/lib/ai/tools/renderForm';
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
@@ -244,17 +244,14 @@ export async function POST(request: Request) {
             model: myProvider.languageModel(selectedChatModel),
             system: afterToolExposePrompt,
             messages,
-            maxSteps: 5,
+            maxSteps: 1,
             experimental_generateMessageId: generateUUID,
             toolCallStreaming: true,
-            experimental_activeTools: [...exposedTools],
+            experimental_activeTools: [...exposedTools, 'renderForm'],
             tools: {
               ...mcpTools,
-              // configureToolInput: configureToolInput(
-              //   Object.keys(exposedTools)[0],
-              // ),
+              renderForm: renderForm(integrationAppCustomerAccessToken),
             },
-            toolChoice: 'required',
             onError: (error) => {
               console.error('RESULT2: Error in chat route');
               console.error(error);

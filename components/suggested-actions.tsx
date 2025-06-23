@@ -26,6 +26,12 @@ function PureSuggestedActions({
       icon: 'https://static.integration.app/connectors/gmail/logo.png',
     },
     {
+      title: 'Create contact',
+      label: 'in HubSpot',
+      action: 'Create a new contact in HubSpot',
+      icon: 'https://static.integration.app/connectors/hubspot/logo.png',
+    },
+    {
       title: 'Check my',
       label: 'Gmail inbox',
       action: 'Show me my recent Gmail messages',
@@ -41,6 +47,12 @@ function PureSuggestedActions({
       title: 'Find contacts',
       label: 'in HubSpot',
       action: 'Search for contacts in HubSpot',
+      icon: 'https://static.integration.app/connectors/hubspot/logo.png',
+    },
+    {
+      title: 'Create contact',
+      label: 'in HubSpot',
+      action: 'Create a new contact in HubSpot',
       icon: 'https://static.integration.app/connectors/hubspot/logo.png',
     },
   ];

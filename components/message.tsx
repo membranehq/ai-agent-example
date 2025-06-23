@@ -18,6 +18,7 @@ import { MessageReasoning } from './message-reasoning';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { ConnectButton } from './integration-app/connect-button';
 import { AppSelectionButton } from './integration-app/app-selection-button';
+import { JsonSchemaForm } from './json-schema-form';
 
 const PurePreviewMessage = ({
   chatId,
@@ -50,6 +51,22 @@ const PurePreviewMessage = ({
           logoUri={result.logoUri}
           append={append}
         />
+      );
+    }
+
+    if (toolName === 'renderForm') {
+      return (
+        <div className="bg-muted p-4 rounded-lg text-black">
+          <JsonSchemaForm
+            schema={result.toolInputSchema}
+            onSubmit={(data) => {
+              append({
+                role: 'user',
+                content: data 
+              });
+            }}
+          />
+        </div>
       );
     }
 
@@ -223,9 +240,6 @@ const PurePreviewMessage = ({
 
                   return (
                     <div key={toolCallId}>
-                      <div className="text-sm text-muted-foreground mb-2">
-                        {toolName}
-                      </div>
                       {renderToolResult(toolName, result)}
                     </div>
                   );
