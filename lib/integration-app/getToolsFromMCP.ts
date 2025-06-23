@@ -1,4 +1,5 @@
 import { experimental_createMCPClient } from 'ai';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
 export async function getToolsFromMCP({
   token,
@@ -19,14 +20,20 @@ export async function getToolsFromMCP({
   }
 
   console.time('[getToolsFromMCP] Init 🔌');
-  const mcpClient = await experimental_createMCPClient({
-    transport: {
-      type: 'sse',
-      url,
-      headers: {
-        Authorization: `Bearer ${token}`,
+
+  const transport = new StreamableHTTPClientTransport(
+    new URL(`${INTEGRATION_APP_MCP_SERVER_HOST}/mcp`),
+    {
+      requestInit: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
     },
+  );
+
+  const mcpClient = await experimental_createMCPClient({
+    transport,
   });
 
   console.timeEnd('[getToolsFromMCP] Init 🔌');
