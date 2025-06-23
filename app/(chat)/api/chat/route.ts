@@ -2,7 +2,6 @@ import {
   appendClientMessage,
   appendResponseMessages,
   createDataStream,
-  smoothStream,
   streamText,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
@@ -149,13 +148,14 @@ export async function POST(request: Request) {
           maxSteps: 10,
           experimental_generateMessageId: generateUUID,
           toolCallStreaming: true,
-          experimental_transform: smoothStream({
-            delayInMs: 20, // optional: defaults to 10ms
-            chunking: 'line', // optional: defaults to 'word'
-          }),
           onError: (error) => {
             console.error('RESULT1: Error in chat route');
             console.log(error);
+
+            dataStream.writeData({
+              type: 'error',
+              message: (error.error as Error).message,
+            });
           },
           tools: {
             ...mcpTools,
@@ -256,6 +256,11 @@ export async function POST(request: Request) {
             onError: (error) => {
               console.error('RESULT2: Error in chat route');
               console.error(error);
+
+              dataStream.writeData({
+                type: 'error',
+                message: (error.error as Error).message,
+              });
             },
             onFinish: async ({ response }) => {
               await mcpClient.close();
