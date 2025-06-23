@@ -19,6 +19,7 @@ import { ConnectButton } from './integration-app/connect-button';
 import { AppSelectionButton } from './integration-app/app-selection-button';
 import { JsonSchemaForm } from './json-schema-form';
 import { Loader } from 'lucide-react';
+import { ToolResultDisplay } from './tool-result-display';
 
 const PurePreviewMessage = ({
   chatId,
@@ -42,6 +43,12 @@ const PurePreviewMessage = ({
   append: UseChatHelpers['append'];
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
+
+  const simplerName: Record<string, string> = {
+    getRelevantApps: 'Find App',
+    getMoreRelevantApp: 'Find More Apps',
+    getActions: 'Find Action',
+  };
 
   const renderToolResult = ({
     toolName,
@@ -79,18 +86,10 @@ const PurePreviewMessage = ({
     }
 
     return (
-      <>
-        <div className="bg-muted p-4 rounded-lg">
-          <details className="group">
-            <summary className="cursor-pointer text-sm text-muted-foreground mb-2 hover:text-foreground">
-              See more
-            </summary>
-            <pre className="text-sm overflow-x-auto mt-2">
-              {JSON.stringify(result, null, 2)}
-            </pre>
-          </details>
-        </div>
-
+      <ToolResultDisplay
+        toolName={simplerName[toolName] ?? toolName}
+        result={result}
+      >
         {['getRelevantApps', 'getMoreRelevantApp'].includes(toolName) &&
           result.apps?.length > 1 && (
             <div className="flex flex-row gap-2 mt-2">
@@ -103,7 +102,7 @@ const PurePreviewMessage = ({
               ))}
             </div>
           )}
-      </>
+      </ToolResultDisplay>
     );
   };
 
