@@ -66,16 +66,18 @@ const PurePreviewMessage = ({
           </details>
         </div>
 
-        <div className="flex flex-row gap-2 mt-2">
-          {['getRelevantApps', 'getMoreRelevantApp'].includes(toolName) &&
-            result.apps?.map((app: any) => (
-              <AppSelectionButton
-                key={app}
-                integrationKey={app}
-                onClick={() => append({ role: 'user', content: app })}
-              />
-            ))}
-        </div>
+        {['getRelevantApps', 'getMoreRelevantApp'].includes(toolName) &&
+          result.apps?.length > 1 && (
+            <div className="flex flex-row gap-2 mt-2">
+              {result.apps?.map((app: any) => (
+                <AppSelectionButton
+                  key={app}
+                  integrationKey={app}
+                  onClick={() => append({ role: 'user', content: app })}
+                />
+              ))}
+            </div>
+          )}
       </>
     );
   };
@@ -221,16 +223,9 @@ const PurePreviewMessage = ({
 
                   return (
                     <div key={toolCallId}>
-                      {/* {![
-                        'getActions',
-                        'getRelevantApps',
-                        'connectApp',
-                        'getMoreRelevantApp',
-                      ].includes(toolName) && ( */}
                       <div className="text-sm text-muted-foreground mb-2">
                         {toolName}
                       </div>
-                      {/* )} */}
                       {renderToolResult(toolName, result)}
                     </div>
                   );
