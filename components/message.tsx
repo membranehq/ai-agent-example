@@ -58,6 +58,7 @@ const PurePreviewMessage = ({
         <div className="bg-muted p-4 rounded-lg text-black">
           <JsonSchemaForm
             schema={result.toolInputSchema}
+            defaultValues={result.inputsAlreadyProvided}
             onSubmit={(data) => {
               append({
                 role: 'user',

@@ -4,18 +4,33 @@ import { useState } from 'react';
 import { DataInput, type DataSchema } from '@integration-app/react';
 import { Button } from './ui/button';
 import '@integration-app/react/styles.css';
+import { ArrowRightIcon } from 'lucide-react';
 
 export function JsonSchemaForm({
   schema,
   onSubmit,
+  defaultValues,
 }: {
   schema: DataSchema;
   onSubmit: (data: any) => void;
+  defaultValues?: Record<string, unknown>;
 }) {
-  const [value, setValue] = useState<unknown>({});
+  const [value, setValue] = useState<unknown>(defaultValues ?? {});
 
   const handleSubmit = () => {
-    onSubmit(`Input: ${JSON.stringify(value)}`);
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      Object.values(value).every((v) => typeof v !== 'object' || v === null)
+    ) {
+      const formatted = Object.entries(value)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('\n');
+      onSubmit(formatted);
+    } else {
+      onSubmit(`Input: ${JSON.stringify(value)}`);
+    }
   };
 
   return (
@@ -27,7 +42,7 @@ export function JsonSchemaForm({
       />
 
       <Button className="self-end" type="button" onClick={handleSubmit}>
-        Continue
+        Continue <ArrowRightIcon className="w-4 h-4" />
       </Button>
     </div>
   );
