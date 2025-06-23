@@ -35,7 +35,7 @@ export async function searchIndexAndSuggestApps({
       topK: 6,
       index,
       namespace,
-      filter,
+      // filter,
     });
 
     const appNameIsExactMatch = searchActionResult.some(
