@@ -52,20 +52,22 @@ export async function POST(request: Request) {
       return new ChatSDKError('unauthorized:chat').toResponse();
     }
 
-    const userType: UserType = session.user.type;
+    // const userType: UserType = session.user.type;
 
-    const messageCount = await getMessageCountByUserId({
-      id: session.user.id,
-      differenceInHours: 24,
-    });
+    // const messageCount = await getMessageCountByUserId({
+    //   id: session.user.id,
+    //   differenceInHours: 24,
+    // });
 
-    if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
-      return new ChatSDKError('rate_limit:chat').toResponse();
-    }
+    // if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
+    //   return new ChatSDKError('rate_limit:chat').toResponse();
+    // }
 
     const chat = await getChatById({ id });
+    let isNewChat = false;
 
     if (!chat) {
+      isNewChat = true;
       const title = await generateTitleFromUserMessage({
         message,
       });
@@ -82,7 +84,11 @@ export async function POST(request: Request) {
       }
     }
 
-    const previousMessages = await getMessagesByChatId({ id });
+    let previousMessages = [] as unknown;
+
+    if (!isNewChat) {
+      previousMessages = await getMessagesByChatId({ id });
+    }
 
     const messages = appendClientMessage({
       // @ts-expect-error: todo add type conversion from DBMessage[] to UIMessage[]
@@ -109,10 +115,6 @@ export async function POST(request: Request) {
         name: session.user.name,
       });
 
-    const { tools: mcpTools, mcpClient } = await getToolsFromMCP({
-      token: integrationAppCustomerAccessToken,
-    });
-
     const user = {
       id: session.user.id,
       name: session.user.name ?? '',
@@ -135,13 +137,28 @@ export async function POST(request: Request) {
       chatId: id,
     });
 
-    const activeTools = [...exposedTools, ...Object.keys(defaultTools)];
+    const activeTools = [
+      ...exposedTools,
+      ...Object.keys(defaultTools),
+    ] as (keyof typeof defaultTools)[];
+
+    let mcpTools: Record<string, any> = {};
+
+    /**
+     * Don't list tools except there's exposed tools
+     */
+    if (exposedTools.length > 0) {
+      const toolsFromMCP = await getToolsFromMCP({
+        token: integrationAppCustomerAccessToken,
+      });
+
+      mcpTools = toolsFromMCP.tools;
+    }
 
     const stream = createDataStream({
       execute: async (dataStream) => {
         const result = streamText({
-          experimental_activeTools:
-            activeTools as (keyof typeof defaultTools)[],
+          experimental_activeTools: activeTools,
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt(),
           messages,
