@@ -23,7 +23,7 @@ interface IntegrationListItemProps {
   onRefresh: () => Promise<void>;
 }
 
-export function IntegrationListItem({
+function IntegrationListItem({
   integration,
   onRefresh,
 }: IntegrationListItemProps) {
@@ -142,7 +142,7 @@ export function IntegrationListItem({
   );
 }
 
-export function IntegrationList() {
+function IntegrationList() {
   const [searchQuery, setSearchQuery] = useState('');
   const {
     integrations,
@@ -214,7 +214,11 @@ export function ConnectionModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="gap-2">
+        <Button
+          size="sm"
+          variant="ghost"
+          className="gap-2 hover:bg-black hover:text-white rounded-full cursor-pointer"
+        >
           <div className="relative">
             <Plug2 />
             <div

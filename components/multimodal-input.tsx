@@ -27,8 +27,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { VisibilityType } from './visibility-selector';
-import { ListTools } from './tools-list';
 import { Input } from './ui/input';
+import { ConnectionModal } from './integration-app/manage-integrations';
 
 function PureMultimodalInput({
   chatId,
@@ -293,9 +293,9 @@ function PureMultimodalInput({
         }}
       />
 
-      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start space-x-2 items-center">
+      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start items-center">
         <AttachmentsButton fileInputRef={fileInputRef} status={status} />
-        {/* <ListTools /> */}
+        <ConnectionModal/>
       </div>
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end">

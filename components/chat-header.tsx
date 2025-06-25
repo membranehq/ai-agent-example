@@ -13,9 +13,7 @@ import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { type VisibilityType, VisibilitySelector } from './visibility-selector';
 import type { Session } from 'next-auth';
-import {
-  ConnectionModal
-} from '@/components/integration-app/manage-integrations';
+import { ConnectionModal } from '@/components/integration-app/manage-integrations';
 import { HeaderUserNav } from './header-user-nav';
 
 function PureChatHeader({
@@ -59,8 +57,6 @@ function PureChatHeader({
             <TooltipContent>New Chat</TooltipContent>
           </Tooltip>
         )}
-
-        <ConnectionModal />
 
         {!isReadonly && (
           <VisibilitySelector
