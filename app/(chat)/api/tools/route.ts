@@ -16,7 +16,9 @@ export async function GET() {
       name: session.user.name ?? '',
     });
 
-    const tools = await getToolsFromMCP({ token });
+    const { tools, mcpClient } = await getToolsFromMCP({ token });
+
+    mcpClient.close();
 
     return NextResponse.json(tools);
   } catch (error) {

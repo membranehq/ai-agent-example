@@ -10,8 +10,8 @@ export const getAllTools = async (): Promise<Record<string, Tool>> => {
       throw new Error('Failed to fetch tools');
     }
 
-    const data = await response.json();
-    return data.tools || {};
+    const tools = await response.json();
+    return tools || {};
   } catch (error) {
     console.error('Error fetching tools:', error);
     return {};
