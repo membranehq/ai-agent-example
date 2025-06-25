@@ -30,7 +30,7 @@ interface IntegrationListItemProps {
   onRefresh: () => Promise<void>;
 }
 
-function IntegrationListItem({
+function ConnectedIntegrationItem({
   integration,
   onRefresh,
 }: IntegrationListItemProps) {
@@ -38,27 +38,7 @@ function IntegrationListItem({
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
 
-  const handleConnect = async () => {
-    try {
-      setIsConnecting(true);
-
-      const connection = await integrationApp
-        .integration(integration.key)
-        .openNewConnection();
-
-      if (!connection?.id) {
-        throw new Error('Connection was not successful');
-      }
-
-      setIsConnecting(false);
-    } catch (error) {
-      setIsConnecting(false);
-
-      toast.error('Failed to connect', {
-        description: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  };
+  console.log(integration);
 
   const handleDisconnect = async () => {
     if (!integration.connection?.id) {
@@ -84,7 +64,7 @@ function IntegrationListItem({
 
   return (
     <div className="flex flex-col p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 pb-3">
         {integration.logoUri ? (
           <Image
             width={32}
@@ -114,47 +94,124 @@ function IntegrationListItem({
       </div>
 
       <div className="w-full flex justify-end">
-        {integration.connection ? (
-          <>
-            {isDisconnected ? (
-              <Button
-                variant="outline"
-                onClick={() => handleConnect()}
-                size="sm"
-                disabled={isConnecting}
-                className="text-xs h-7 py-1"
-              >
-                {isConnecting ? <Loader2 className="size-3" /> : 'Reconnect'}
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={handleDisconnect}
-                size="sm"
-                disabled={isDisconnecting}
-                className="text-xs h-7 py-1 text-red-500 hover:text-red-600"
-              >
-                {isDisconnecting ? (
-                  <Loader2 className="size-3" />
-                ) : (
-                  'Disconnect'
-                )}
-              </Button>
-            )}
-          </>
+        <Button
+          variant="outline"
+          onClick={handleDisconnect}
+          size="sm"
+          disabled={isDisconnecting}
+          className="text-xs h-7 py-1 text-red-500 hover:text-red-600"
+        >
+          {isDisconnecting ? <Loader2 className="size-3" /> : 'Disconnect'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function UnconnectedIntegrationItem({
+  integration,
+  onRefresh,
+}: IntegrationListItemProps) {
+  const integrationApp = useIntegrationApp();
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleConnect = async () => {
+    try {
+      setIsConnecting(true);
+
+      const connection = await integrationApp
+        .integration(integration.key)
+        .openNewConnection();
+
+      if (!connection?.id) {
+        throw new Error('Connection was not successful');
+      }
+
+      setIsConnecting(false);
+    } catch (error) {
+      setIsConnecting(false);
+
+      toast.error('Failed to connect', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  };
+
+  return (
+    <div
+      className="flex flex-col p-3 border rounded-lg transition-colors hover:bg-muted/50 cursor-pointer hover:border-primary/50"
+      onClick={handleConnect}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="flex items-center gap-3">
+        {integration.logoUri ? (
+          <Image
+            width={32}
+            height={32}
+            src={integration.logoUri}
+            alt={`${integration.name} logo`}
+            className="size-8 rounded-lg shrink-0"
+          />
         ) : (
-          <Button
-            onClick={() => handleConnect()}
-            variant="default"
-            size="sm"
-            disabled={isConnecting}
-            className="text-xs h-7 py-1"
-          >
-            {isConnecting ? <Loader2 className="size-3" /> : 'Connect'}
-          </Button>
+          <div className="size-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm font-medium shrink-0">
+            {integration.name[0]}
+          </div>
+        )}
+
+        <div className="flex-1 min-w-0">
+          <h3 className="font-medium text-sm truncate">{integration.name}</h3>
+          <div className="h-4 mt-1">
+            {isHovered ? (
+              <div className="flex items-center gap-1">
+                <Plug2 className="size-3 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  Click to connect
+                </span>
+              </div>
+            ) : (
+              <span className="text-xs text-muted-foreground/60 font-mono truncate block">
+                {integration.key}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full flex justify-end">
+        {isConnecting && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Loader2 className="size-3 animate-spin" />
+            Connecting...
+          </div>
         )}
       </div>
     </div>
+  );
+}
+
+function IntegrationListItem({
+  integration,
+  onRefresh,
+}: IntegrationListItemProps) {
+  const isConnected =
+    integration.connection && !integration.connection.disconnected;
+
+  if (isConnected) {
+    return (
+      <ConnectedIntegrationItem
+        integration={integration}
+        onRefresh={onRefresh}
+      />
+    );
+  }
+
+  return (
+    <UnconnectedIntegrationItem
+      integration={integration}
+      onRefresh={onRefresh}
+    />
   );
 }
 
@@ -229,12 +286,12 @@ function IntegrationList() {
         ) : (
           <>
             {/* Connected Apps */}
-            {connectedIntegrations.length > 0 && (
+            {connectedIntegrations.length > 0 ? (
               <div>
                 <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">
                   Connected Apps ({connectedIntegrations.length})
                 </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-3">
                   {connectedIntegrations.map((integration) => (
                     <IntegrationListItem
                       key={integration.key}
@@ -244,13 +301,22 @@ function IntegrationList() {
                   ))}
                 </div>
               </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-muted-foreground/20 rounded-lg">
+                <Plug2 className="size-8 text-muted-foreground/50 mb-2" />
+                <p className="text-sm text-muted-foreground text-center">
+                  No connected apps yet
+                </p>
+                <p className="text-xs text-muted-foreground/70 text-center mt-1">
+                  Connect apps below to get started
+                </p>
+              </div>
             )}
 
-            {/* Connect More Apps */}
             <div>
               <div className="flex items-center justify-between mb-3 px-1">
                 <h3 className="text-sm font-semibold text-muted-foreground">
-                  Connect More Apps
+                  Connect Apps
                 </h3>
                 <div className="relative w-64">
                   <Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" />
@@ -285,7 +351,7 @@ function IntegrationList() {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-3">
                   {unconnectedIntegrations.map((integration) => (
                     <IntegrationListItem
                       key={integration.key}
@@ -329,12 +395,15 @@ export function ConnectionModal() {
               )}
             />
           </div>
-          Connect apps
+          Manage apps
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>Connect to apps</DialogTitle>
+        <DialogHeader className="pl-2">
+          <DialogTitle>Manage Apps</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Connect to third-party apps and access their tools
+          </p>
         </DialogHeader>
         <div className="overflow-y-auto h-[70vh]">
           <IntegrationList />
