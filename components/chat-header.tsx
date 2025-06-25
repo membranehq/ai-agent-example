@@ -1,6 +1,6 @@
 'use client';
 
-// import Link from 'next/link';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useWindowSize } from 'usehooks-ts';
 
@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { type VisibilityType, VisibilitySelector } from './visibility-selector';
 import type { Session } from 'next-auth';
 import { HeaderUserNav } from './header-user-nav';
+import { GithubIcon } from 'lucide-react';
 
 function PureChatHeader({
   chatId,
@@ -65,11 +66,25 @@ function PureChatHeader({
         )}
       </div>
 
-      {session?.user && (
-        <div className="ml-auto">
-          <HeaderUserNav user={session.user} />
-        </div>
-      )}
+      <div className="ml-auto flex items-center gap-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href="https://github.com/integration-app/ai-agent-example"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="ghost" size="sm" className="size-10 p-0">
+                <GithubIcon size={36} />
+                <span className="sr-only">GitHub</span>
+              </Button>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>View on GitHub</TooltipContent>
+        </Tooltip>
+
+        {session?.user && <HeaderUserNav user={session.user} />}
+      </div>
     </header>
   );
 }
