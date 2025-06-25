@@ -4,22 +4,19 @@ import {
   createDataStream,
   streamText,
 } from 'ai';
-import { auth, type UserType } from '@/app/(auth)/auth';
-import { getAfterToolExposePrompt, systemPrompt } from '@/lib/ai/prompts';
+import { auth } from '@/app/(auth)/auth';
+import { getAfterToolExposePrompt, regularPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById,
   getChatById,
-  getChatExposedTools,
-  getMessageCountByUserId,
-  getMessagesByChatId,
+  getChatExposedTools, getMessagesByChatId,
   getStreamIdsByChatId,
   saveChat,
-  saveMessages,
+  saveMessages
 } from '@/lib/db/queries';
 import { generateUUID, getTrailingMessageId } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
 import { myProvider } from '@/lib/ai/providers';
-import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
 import type { Chat } from '@/lib/db/schema';
 import { differenceInSeconds } from 'date-fns';
@@ -160,7 +157,7 @@ export async function POST(request: Request) {
         const result = streamText({
           experimental_activeTools: activeTools,
           model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt(),
+          system: regularPrompt,
           messages,
           maxSteps: 10,
           experimental_generateMessageId: generateUUID,

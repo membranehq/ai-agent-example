@@ -5,15 +5,12 @@ import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import { memo, useState } from 'react';
 import type { Vote } from '@/lib/db/schema';
-import { PencilEditIcon, SparklesIcon } from './icons';
+import { SparklesIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
 import equal from 'fast-deep-equal';
 import { cn, sanitizeText } from '@/lib/utils';
-import { Button } from './ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { MessageEditor } from './message-editor';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { ConnectButton } from './integration-app/connect-button';
 import { AppSelectionButton } from './integration-app/app-selection-button';
@@ -26,7 +23,7 @@ const PurePreviewMessage = ({
   message,
   vote,
   isLoading,
-  setMessages,
+
   reload,
   isReadonly,
   requiresScrollPadding,
@@ -42,7 +39,7 @@ const PurePreviewMessage = ({
   requiresScrollPadding: boolean;
   append: UseChatHelpers['append'];
 }) => {
-  const [mode, setMode] = useState<'view' | 'edit'>('view');
+  const [mode, setMode] = useState<'view'>('view');
 
   const simplerName: Record<string, string> = {
     getRelevantApps: 'Find App',
@@ -57,7 +54,7 @@ const PurePreviewMessage = ({
   }: {
     toolName: string;
     result: any;
-    args:any
+    args: any;
   }) => {
     if (toolName === 'connectApp') {
       return (
@@ -120,11 +117,7 @@ const PurePreviewMessage = ({
       >
         <div
           className={cn(
-            'flex gap-4 w-full group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl',
-            {
-              'w-full': mode === 'edit',
-              'group-data-[role=user]/message:w-fit': mode !== 'edit',
-            },
+            'flex gap-4 group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl w-full group-data-[role=user]/message:w-fit',
           )}
         >
           {message.role === 'assistant' && (
@@ -163,24 +156,6 @@ const PurePreviewMessage = ({
                 if (mode === 'view') {
                   return (
                     <div key={key} className="flex flex-row gap-2 items-start">
-                      {message.role === 'user' && !isReadonly && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              data-testid="message-edit-button"
-                              variant="ghost"
-                              className="px-2 h-fit rounded-full text-muted-foreground opacity-0 group-hover/message:opacity-100"
-                              onClick={() => {
-                                setMode('edit');
-                              }}
-                            >
-                              <PencilEditIcon />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Edit message</TooltipContent>
-                        </Tooltip>
-                      )}
-
                       <div
                         data-testid="message-content"
                         className={cn('flex flex-col gap-4', {
@@ -190,22 +165,6 @@ const PurePreviewMessage = ({
                       >
                         <Markdown>{sanitizeText(part.text)}</Markdown>
                       </div>
-                    </div>
-                  );
-                }
-
-                if (mode === 'edit') {
-                  return (
-                    <div key={key} className="flex flex-row gap-2 items-start">
-                      <div className="size-8" />
-
-                      <MessageEditor
-                        key={message.id}
-                        message={message}
-                        setMode={setMode}
-                        setMessages={setMessages}
-                        reload={reload}
-                      />
                     </div>
                   );
                 }
