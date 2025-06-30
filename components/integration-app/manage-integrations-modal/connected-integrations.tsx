@@ -145,17 +145,7 @@ function RefreshMCPToolsIndexButton() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result = await response.json();
-
-      if (result.failedRefreshes > 0) {
-        toast.error('Some tools failed to refresh', {
-          description: `${result.successfulRefreshes} successful, ${result.failedRefreshes} failed`,
-        });
-      } else {
-        toast.success('MCP tools refreshed successfully', {
-          description: `Refreshed ${result.successfulRefreshes} apps`,
-        });
-      }
+      toast.success('MCP tools index refreshed successfully');
     } catch (error) {
       console.error('Error refreshing index:', error);
       toast.error('Failed to refresh index', {
