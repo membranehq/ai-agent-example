@@ -26,30 +26,52 @@ git clone https://github.com/integration-app/ai-agent.git
 pnpm install
 ```
 
-3. Copy the environment variables from `.env.example` to `.env` and fill in the values.
+3. Copy the environment variables from `.env.example` to `.env` and fill in the values. The file contains relevant link for how to get the values for each environment variable.
 
 ```bash
 cp .env.example .env
 ```
 
-4. Push migrations to the database using
+4. Create two indexes in Pinecone. One will store metadata for all available actions in your workspace. The other will store metadata of available tools for all your users. See details on how to create an index on Pinecone [here](https://docs.pinecone.io/reference/create_index). Once you have created the indexes, add the index names to the following environment variables:
+
+```bash
+# index to store all membrane actions
+PINECONE_MEMBRANE_TOOLS=""
+
+# Index to store all user available tools
+PINECONE_CLIENT_TOOLS=""
+```
+
+5. Push migrations to the database using
 
 ```bash
 pnpm db:push
 ```
 
-5. Create a new index in Pinecone. See details on how to create an index on Pinecone [here](https://docs.pinecone.io/reference/create_index). Once you have created the index, add the index name to the `PINECONE_INDEX_NAME` environment variable and run the following command to index your actions.
+6. Index actions using this command:
 
 ```bash
 pnpm pinecone:index-actions
 ```
 
-6. Run the development server
+### Running the development server
 
 ```bash
 pnpm dev
 ```
 
-### Notes
+### How it works
 
-**Gradual tools exposure**
+When an MCP server provide a large number of tools to an LLM, the following can happen:
+
+- The LLM can completely freeze or hallucinate on what tools to call
+- LLM consumes a large number of token per message since the tool list is sent in the request
+
+To solve this problem, this example exposes a small number of tools to the LLM based on the user query.
+
+The example uses the following approach:
+
+- Pre-index the metadata of all available actions in your workspace.
+- When a user starts a chat to perform a task, we search the MCP tools index for the most relevant tools based on the user’s query.
+- If no relevant tool is found in the MCP index, the LLM will fall back to searching the full index of all available workspace actions.
+- The LLM is then provided with the most relevant tool to call based on the search results.
