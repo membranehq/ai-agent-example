@@ -128,9 +128,71 @@ function ConnectedIntegrationItem({
   );
 }
 
+function RefreshMCPToolsIndexButton() {
+  const [isRefreshingIndex, setIsRefreshingIndex] = useState(false);
+
+  const handleRefreshIndex = async () => {
+    setIsRefreshingIndex(true);
+    try {
+      const response = await fetch('/api/tools/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.failedRefreshes > 0) {
+        toast.error('Some tools failed to refresh', {
+          description: `${result.successfulRefreshes} successful, ${result.failedRefreshes} failed`,
+        });
+      } else {
+        toast.success('MCP tools refreshed successfully', {
+          description: `Refreshed ${result.successfulRefreshes} apps`,
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing index:', error);
+      toast.error('Failed to refresh index', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    } finally {
+      setIsRefreshingIndex(false);
+    }
+  };
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={handleRefreshIndex}
+      disabled={isRefreshingIndex}
+      className="text-xs h-7 py-1"
+    >
+      {isRefreshingIndex ? (
+        <>
+          <Loader2 className="size-3 mr-1 animate-spin" />
+          Refreshing...
+        </>
+      ) : (
+        <>
+          <RefreshCw className="size-3 mr-1" />
+          Refresh Index
+        </>
+      )}
+    </Button>
+  );
+}
+
 export function ConnectedIntegrations() {
   const [toolsData, setToolsData] = useState<Record<string, Tool> | null>(null);
   const [isToolsLoading, setIsToolsLoading] = useState(false);
+  const [isRefreshingIndex, setIsRefreshingIndex] = useState(false);
 
   const {
     connections,
@@ -154,6 +216,9 @@ export function ConnectedIntegrations() {
     .filter(
       (integration): integration is Integration => integration !== undefined,
     );
+
+  // Calculate total tools count across all integrations
+  const totalToolsCount = Object.keys(toolsData || {}).length;
 
   const getToolsForIntegration = (
     integrationKey: string,
@@ -232,10 +297,24 @@ export function ConnectedIntegrations() {
   return (
     <div>
       <div className="flex items-center justify-between mb-3 px-1">
-        <h3 className="text-sm font-semibold text-muted-foreground">
-          Connected Apps ({connectedIntegrations.length})
-        </h3>
-        {isToolsLoading && <LoadingToolsIndicator />}
+        <div className="flex flex-col gap-1">
+          <h3 className="text-sm font-semibold text-muted-foreground">
+            Connected Apps ({connectedIntegrations.length})
+          </h3>
+          {!isToolsLoading && toolsData && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Hammer className="size-3" />
+              <span>
+                {totalToolsCount} total{' '}
+                {totalToolsCount === 1 ? 'tool' : 'tools'}
+              </span>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          {!isToolsLoading && <RefreshMCPToolsIndexButton />}
+          {isToolsLoading && <LoadingToolsIndicator />}
+        </div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-3">
         {connectedIntegrations.map((integration) => (

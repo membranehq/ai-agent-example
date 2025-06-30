@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { IntegrationAppClient } from '@integration-app/sdk';
 import { updateChatExposedTools } from '@/lib/db/queries';
 import { searchIndex } from '@/lib/pinecone/search-index';
-import { indexMcpToolsForApp } from '@/lib/pinecone/index-user-mcp-tools-for-app';
+import { indexMcpTools } from '@/lib/pinecone/index-user-mcp-tools';
 import pRetry from 'p-retry';
 
 interface GetActionsProps {
@@ -62,7 +62,7 @@ export const getActions = ({
           ///////////////////////////////////////
           // Index tools retrieved from MCP
           ///////////////////////////////////////
-          await indexMcpToolsForApp({
+          await indexMcpTools({
             user,
             app,
           });

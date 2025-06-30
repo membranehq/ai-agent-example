@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { getUserById } from '@/lib/db/queries';
 import { removeToolsForAppFromIndex } from '@/lib/pinecone/remove-tools-for-app-from-index';
-import { indexMcpToolsForApp } from '@/lib/pinecone/index-user-mcp-tools-for-app';
+import { indexMcpTools } from '@/lib/pinecone/index-user-mcp-tools';
 
 const schema = z.object({
   eventType: z.string(),
@@ -30,11 +30,7 @@ export async function POST(request: NextRequest) {
 
   const { eventType, data } = requestBody as z.infer<typeof schema>;
 
-  const {
-    user: { internalId },
-  } = data.connection;
-
-  const user = await getUserById(internalId);
+  const user = await getUserById(data.connection.user.internalId);
 
   if (!user) {
     return new Response('User not found', { status: 404 });
@@ -51,7 +47,7 @@ export async function POST(request: NextRequest) {
 
   switch (eventType) {
     case 'connection.created':
-      await indexMcpToolsForApp({
+      await indexMcpTools({
         user: _user,
         app: data.connection.integration.key,
       });

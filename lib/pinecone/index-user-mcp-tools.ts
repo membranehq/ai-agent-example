@@ -8,13 +8,10 @@ interface HandleConnectProps {
     id: string;
     name: string;
   };
-  app: string;
+  app?: string;
 }
 
-/**
- * On connect, we want to index all tools the app the user has connected.
- */
-export async function indexMcpToolsForApp({ user, app }: HandleConnectProps) {
+export async function indexMcpTools({ user, app }: HandleConnectProps) {
   const INDEX_NAME = process.env.PINECONE_CLIENT_TOOLS as string;
 
   const token = await generateIntegrationAppCustomerAccessToken({
@@ -22,9 +19,13 @@ export async function indexMcpToolsForApp({ user, app }: HandleConnectProps) {
     name: user.name,
   });
 
-  console.log('Getting tools for connected app', {
-    app,
-  });
+  if (app) {
+    console.log('Getting tools for connected app', {
+      app,
+    });
+  } else {
+    console.log('Getting tools for all apps');
+  }
 
   // get tools for the app that was connected from MCP
   const { tools: toolsForConnectedApp, mcpClient } = await getToolsFromMCP({
@@ -35,7 +36,7 @@ export async function indexMcpToolsForApp({ user, app }: HandleConnectProps) {
   await mcpClient.close();
 
   console.log(
-    `We got ${Object.keys(toolsForConnectedApp).length} tools for the connected app: ${app}`,
+    `We got ${Object.keys(toolsForConnectedApp).length} tools`,
   );
 
   const pinecone = new Pinecone({
