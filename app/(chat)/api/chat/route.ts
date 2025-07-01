@@ -255,7 +255,7 @@ export async function POST(request: Request) {
           });
 
           const result1 = streamText({
-            model: myProvider.languageModel(selectedChatModel),
+            model: myProvider.languageModel('chat-model'),
             system: afterToolExposePrompt,
             messages,
             maxSteps: 1,
