@@ -9,10 +9,11 @@ import { getAfterToolExposePrompt, regularPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById,
   getChatById,
-  getChatExposedTools, getMessagesByChatId,
+  getChatExposedTools,
+  getMessagesByChatId,
   getStreamIdsByChatId,
   saveChat,
-  saveMessages
+  saveMessages,
 } from '@/lib/db/queries';
 import { generateUUID, getTrailingMessageId } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
@@ -40,8 +41,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, message, selectedChatModel, selectedVisibilityType } =
-      requestBody;
+    const { id, message, selectedVisibilityType } = requestBody;
 
     const session = await auth();
 
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
       execute: async (dataStream) => {
         const result = streamText({
           experimental_activeTools: activeTools,
-          model: myProvider.languageModel(selectedChatModel),
+          model: myProvider.languageModel('chat-model'),
           system: regularPrompt,
           messages,
           maxSteps: 10,

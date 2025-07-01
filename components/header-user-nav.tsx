@@ -7,18 +7,14 @@ import { Moon, Sun, User as UserIcon } from 'lucide-react';
 
 import {
   DropdownMenu,
-  DropdownMenuContent, DropdownMenuTrigger
+  DropdownMenuContent,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
-import { guestRegex } from '@/lib/constants';
 
 export function HeaderUserNav({ user }: { user: User }) {
-  const router = useRouter();
-  const { data, status } = useSession();
+  const { status } = useSession();
   const { setTheme, theme } = useTheme();
-
-  const isGuest = guestRegex.test(data?.user?.email ?? '');
 
   return (
     <DropdownMenu>
@@ -63,7 +59,7 @@ export function HeaderUserNav({ user }: { user: User }) {
             </div>
           </div>
           <div className="space-y-0.5 px-4">
-            <h4 className="font-semibold text-base">{user.name || 'User'}</h4>
+            <h4 className="font-semibold text-base">Guest</h4>
             <p className="text-xs text-muted-foreground">{user.email}</p>
           </div>
         </div>
@@ -81,11 +77,11 @@ export function HeaderUserNav({ user }: { user: User }) {
             )}
           </Button>
         </div>
-       
+
         <div className="px-3 py-2 mt-2 border-t">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            We use your id, name to generate an access token that
-            allows integrations to run on your behalf. For more details, see the{' '}
+            We use your id, name to generate an access token that allows
+            integrations to run on your behalf. For more details, see the{' '}
             <a
               href="https://console.integration.app/docs/getting-started/authentication#authentication"
               className="text-primary hover:underline"
