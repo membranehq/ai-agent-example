@@ -1,60 +1,83 @@
-### Integration App AI Agent
+## Integration App AI Agent Example
 
 This is an example of an AI agent that uses the Integration App to provide integration capabilities to users via tools.
 
-#### Prerequisites
+### Prerequisites 🛠️
 
-- [Integration App](https://integration-app.com/): Provides AI agents with integration capabilities.
+- **Integration App** – the central platform for building and running your app integrations.  
+  [integration.app](https://integration-app.com/)
 
-- [Pinecone](https://www.pinecone.io/): A vector database for storing and querying embeddings. We use this to store data about all available tools based on actions defined in your integration app workspace.
+- **Pinecone** – a managed vector database used to store and query embeddings (e.g., for tool/data lookup).  
+  [pinecone.io](https://www.pinecone.io/)
 
-- [Claude](https://www.anthropic.com/): This project uses Claude as the LLM provider, but you can use any other LLM provider. See details on how to use other LLM providers [here](https://sdk.vercel.ai/providers/ai-sdk-providers).
+- **Anthropic Claude** – the default LLM in this project (easily swapped for others if needed).  
+  [Learn about providers](https://sdk.vercel.ai/providers/ai-sdk-providers)
 
-- [Postgres Database](https://www.postgresql.org/): This project uses Postgres to store chats. You can use any Postgres database of your choice.
+- **PostgreSQL** – stores all chat/session logs; any Postgres setup works.  
+  [postgresql.org](https://www.postgresql.org/)
 
-#### Setup Guide
+### Setup Guide 🔧
 
-1. Clone the repository
+1. **Clone the repository**
 
 ```bash
 git clone https://github.com/integration-app/ai-agent.git
 ```
 
-2. Install dependencies using
+2. **Install dependencies**
 
 ```bash
 pnpm install
 ```
 
-3. Copy the environment variables from `.env.example` to `.env` and fill in the values. The file contains relevant link for how to get the values for each environment variable.
+3. **Configure environment variables**
 
 ```bash
 cp .env.example .env
 ```
 
-4. Create two indexes in Pinecone. One will store metadata for all available actions in your workspace. The other will store metadata of available tools for all your users. See details on how to create an index on Pinecone [here](https://docs.pinecone.io/reference/create_index). Once you have created the indexes, add the index names to the following environment variables:
+Then edit .env to add your API keys, index names, DB connection string, etc. (Comments and links are included for guidance.)
+
+4. **Create Pinecone indexes**
+
+You’ll need two vector indexes:
+
+- **Membrane actions** – stores metadata for all available actions in your workspace
+- **Client tools** – stores metadata for your users’ available tools from MCP
+
+Use Pinecone web console or CLI. For example via CLI:
 
 ```bash
-# index to store all membrane actions
-PINECONE_MEMBRANE_TOOLS=""
-
-# Index to store all user available tools
-PINECONE_CLIENT_TOOLS=""
+pinecone index create \
+  --name your-membrane-index \
+  --dimension 1536 \
+  --metric cosine
+pinecone index create \
+  --name your-client-index \
+  --dimension 1536 \
+  --metric cosine
 ```
 
-5. Push migrations to the database using
+Then update .env with:
+
+```bash
+PINECONE_MEMBRANE_TOOLS="your-membrane-index"
+PINECONE_CLIENT_TOOLS="your-client-index"
+```
+
+5. **Run database migrations**
 
 ```bash
 pnpm db:push
 ```
 
-6. Index actions using this command:
+6. Index all actions in Pinecone
 
 ```bash
 pnpm pinecone:index-actions
 ```
 
-### Running the development server
+🚀 You’re ready! Now run the development server:
 
 ```bash
 pnpm dev
@@ -73,8 +96,7 @@ Here's a diagram that shows how it works:
 
 ![AI Agent Example Arch Frame 1](https://github.com/user-attachments/assets/c7127be2-0788-4714-86f7-55ba5fd6b587)
 
-
-Summary:
+#### Summary
 
 - Pre-index the metadata of all available actions in your workspace.
 - When a user starts a chat to perform a task, we search the MCP tools index for the most relevant tools based on the user’s query.
