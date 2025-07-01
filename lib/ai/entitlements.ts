@@ -11,8 +11,4 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
   guest: {
     maxMessagesPerDay: 100,
   },
-
-  /*
-   * TODO: For users with an account and a paid membership
-   */
 };

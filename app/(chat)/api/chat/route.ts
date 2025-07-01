@@ -4,12 +4,13 @@ import {
   createDataStream,
   streamText,
 } from 'ai';
-import { auth } from '@/app/(auth)/auth';
+import { auth, type UserType } from '@/app/(auth)/auth';
 import { getAfterToolExposePrompt, regularPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById,
   getChatById,
   getChatExposedTools,
+  getMessageCountByUserId,
   getMessagesByChatId,
   getStreamIdsByChatId,
   saveChat,
@@ -29,6 +30,7 @@ import { connectApp } from '@/lib/ai/tools/connect-app';
 import { getMoreRelevantApp } from '@/lib/ai/tools/get-more-relevant-app';
 import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
 import { renderForm } from '@/lib/ai/tools/renderForm';
+import { entitlementsByUserType } from '@/lib/ai/entitlements';
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
@@ -49,16 +51,16 @@ export async function POST(request: Request) {
       return new ChatSDKError('unauthorized:chat').toResponse();
     }
 
-    // const userType: UserType = session.user.type;
+    const userType: UserType = session.user.type;
 
-    // const messageCount = await getMessageCountByUserId({
-    //   id: session.user.id,
-    //   differenceInHours: 24,
-    // });
+    const messageCount = await getMessageCountByUserId({
+      id: session.user.id,
+      differenceInHours: 24,
+    });
 
-    // if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
-    //   return new ChatSDKError('rate_limit:chat').toResponse();
-    // }
+    if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
+      return new ChatSDKError('rate_limit:chat').toResponse();
+    }
 
     const chat = await getChatById({ id });
     let isNewChat = false;
