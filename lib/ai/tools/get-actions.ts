@@ -56,49 +56,38 @@ export const getActions = ({
           integrationKey: app,
         });
 
-        const hasConnectionToApp = result.items.length > 0;
+        if (result.items.length === 0) {
+          return {
+            success: false,
+            data: {
+              app,
+              text: `You don't have a connection to ${app}, connect to ${app} to get actions`,
+            },
+          };
+        }
 
-        if (hasConnectionToApp) {
-          ///////////////////////////////////////
-          // Index tools retrieved from MCP
-          ///////////////////////////////////////
-          await indexMcpTools({
-            user,
-            app,
-          });
-
-          ///////////////////////////////////////////
-          // Find the most relevant tools for the user
-          // query from their user-tools index
-          ///////////////////////////////////////////
-
-          /**
-           * Sometimes the search might return no results right after indexing(ideally
-           * we should always get results even if they are not relevant)
-           * Let's retry a few times to give the index time to stabilize
-           */
-          const searchActionResult = await pRetry(
+        // Search for tools with retry logic
+        const searchWithRetry = async () => {
+          return await pRetry(
             async () => {
               const results = await searchIndex({
                 query,
                 topK: 5,
                 index: 'client-tools',
                 namespace: user.id,
+                filter: { integrationKey: app },
               });
 
-              // If we got no results, throw an error to trigger a retry
               if (results.length === 0) {
-                throw new Error(
-                  `Found no results from searching the index with ${query}, retrying to get search results...`,
-                );
+                throw new Error('No search results found, retrying...');
               }
 
               return results;
             },
             {
-              retries: 3, // Try up to 3 times
-              minTimeout: 1000, // Start with 1 second
-              maxTimeout: 3000, // Max 5 seconds between retries
+              retries: 3,
+              minTimeout: 1000,
+              maxTimeout: 3000,
               onFailedAttempt: (error) => {
                 console.log(
                   `Search attempt failed: ${error.message}. Retrying...`,
@@ -106,28 +95,27 @@ export const getActions = ({
               },
             },
           );
+        };
 
-          if (searchActionResult.length > 0) {
-            await updateChatExposedTools({
-              chatId,
-              toolsList: searchActionResult.map((tool) => tool.toolKey),
-            });
-          }
+        // Try to search first, if no results after some retries, index tools and search again
+        const searchResults = await searchWithRetry().catch(async () => {
+          await indexMcpTools({ user, app });
+          return await searchWithRetry();
+        });
 
-          return {
-            success: true,
-            data: {
-              exposedToolsCount: searchActionResult.length,
-              tools: searchActionResult.map((tool) => tool.toolKey),
-            },
-          };
+        // Update chat with found tools
+        if (searchResults.length > 0) {
+          await updateChatExposedTools({
+            chatId,
+            toolsList: searchResults.map((tool) => tool.toolKey),
+          });
         }
 
         return {
-          success: false,
+          success: true,
           data: {
-            app,
-            text: `You don't have a connection to ${app}, connect to ${app} to get actions`,
+            exposedToolsCount: searchResults.length,
+            tools: searchResults.map((tool) => tool.toolKey),
           },
         };
       } catch (error) {
