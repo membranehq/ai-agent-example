@@ -48,7 +48,8 @@ export const ConnectButton = ({
 
   return (
     <Button
-      className="bg-primary text-primary-foreground hover:bg-primary/90"
+      variant="outline"
+      className="border-gray-300 text-gray-700 dark:border-gray-600 dark:text-gray-300"
       onClick={handleConnect}
       disabled={state === 'connecting' || state === 'connected'}
     >

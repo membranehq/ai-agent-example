@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckIcon, ChevronRightIcon } from 'lucide-react';
+import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from './ui/button';
 
@@ -21,35 +21,31 @@ export const ToolResultDisplay = ({
 
   return (
     <>
-      <div className="bg-muted p-4 rounded-lg mr-10">
-        <div className="flex items-center gap-2">
+      <div className="pr-4 rounded-lg mr-10">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center gap-2 h-auto p-2 transition-transform duration-200"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
           <CheckIcon strokeWidth={3} size={18} className="text-green-600" />
           <span className="text-sm font-medium text-foreground">
             {toolName}
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-auto size-6 p-0 transition-transform duration-200"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            <ChevronRightIcon
-              size={14}
-              className={`transition-transform duration-200 ${
-                isExpanded ? 'rotate-90' : 'rotate-0'
-              }`}
-            />
-          </Button>
-        </div>
+          <ChevronsUpDownIcon
+            size={14}
+            className="transition-transform duration-200"
+          />
+        </Button>
 
         <div
           className={`overflow-hidden transition-all duration-300 ease-in-out ${
             isExpanded
-              ? 'max-h-64 opacity-100 mt-3 pt-3 border-t border-border overflow-y-auto'
+              ? 'opacity-100 mt-3 pt-3 overflow-y-auto'
               : 'max-h-0 opacity-0'
           }`}
         >
-          <div className="space-y-3">
+          <div className="bg-muted p-4 rounded-lg space-y-3">
             <div>
               <span className="text-xs font-medium text-muted-foreground mb-1 block">
                 Input

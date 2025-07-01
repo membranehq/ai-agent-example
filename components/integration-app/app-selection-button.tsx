@@ -35,9 +35,10 @@ export const AppSelectionButton = ({
 
   return (
     <Button
+      size="sm"
       variant="outline"
-      onClick={onClick}
       className="text-sm flex items-center gap-2"
+      onClick={onClick}
     >
       {logoUri && (
         <img
