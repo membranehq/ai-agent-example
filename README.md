@@ -1,6 +1,8 @@
 ## Integration App AI Agent Example
 
-This is an example of an AI agent that uses the Integration App to provide integration capabilities to users via tools.
+This is an example of an AI agent that uses the Integration App MCP server. Rather than providing all tools to LLM at once, it provides a small number of tools based on the user's query.
+
+For a similar example where all tools are provided to LLM at once, see [ai-agent](https://github.com/integration-app/ai-agent).
 
 ### Prerequisites 🛠️
 
@@ -13,8 +15,7 @@ This is an example of an AI agent that uses the Integration App to provide integ
 - **Anthropic Claude** – the default LLM in this project (easily swapped for others if needed).  
   [Learn about providers](https://sdk.vercel.ai/providers/ai-sdk-providers)
 
-- **PostgreSQL** – stores all chat/session logs; any Postgres setup works.  
-  [postgresql.org](https://www.postgresql.org/)
+- **PostgreSQL** – stores all chat/session logs; any Postgres setup works. You can use [Supabase](https://supabase.com/) for a free and easy setup.
 
 ### Setup Guide 🔧
 
@@ -52,6 +53,7 @@ pinecone index create \
   --name your-membrane-index \
   --dimension 1536 \
   --metric cosine
+
 pinecone index create \
   --name your-client-index \
   --dimension 1536 \
@@ -99,6 +101,10 @@ Here's a diagram that shows how it works:
 #### Summary
 
 - Pre-index the metadata of all available actions in your workspace.
-- When a user starts a chat to perform a task, we search the MCP tools index for the most relevant tools based on the user’s query.
+- When a user starts a chat to perform a task, prompt LLM to search the MCP tools index for the most relevant tools based on the user’s query.
 - If no relevant tool is found in the MCP index, the LLM will fall back to searching the full index of all available workspace actions.
 - The LLM is then provided with the most relevant tool to call based on the search results.
+- When a new app is connected, we re-index the MCP server with available actions.
+
+
+

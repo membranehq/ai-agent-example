@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers';
 
 import { Chat } from '@/components/chat';
-import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import { generateUUID } from '@/lib/utils';
 import { auth } from '../(auth)/auth';
 import { redirect } from 'next/navigation';
@@ -30,9 +29,6 @@ export default async function Page() {
         key={id}
         id={id}
         initialMessages={[]}
-        initialChatModel={
-          !modelIdFromCookie ? DEFAULT_CHAT_MODEL : modelIdFromCookie.value
-        }
         initialVisibilityType="private"
         isReadonly={false}
         session={session}
