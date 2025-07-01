@@ -2,10 +2,6 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { IntegrationAppClient } from '@integration-app/sdk';
 
-/**
- * TODO: Maybe Move membrane call to frontend to make things visually faster
- */
-
 export const renderForm = (token: string) =>
   tool({
     description: `Render a form to collect input for a tool`,
@@ -36,7 +32,7 @@ export const renderForm = (token: string) =>
       const action = await membrane
         .action({
           integrationKey,
-          key: actionKey, // The key here is not reliable since MCP may have truncated the tool name if it's too long
+          key: actionKey, // TODO: The key here is not reliable since MCP may have truncated the tool name if it's too long
         })
         .get();
 

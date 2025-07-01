@@ -69,7 +69,11 @@ When an MCP server provide a large number of tools to an LLM, the following can 
 
 To solve this problem, this example exposes a small number of tools to the LLM based on the user query.
 
-The example uses the following approach:
+Here's a diagram that shows how it works:
+
+![How it works](./docs/how-it-works.png)
+
+Summary:
 
 - Pre-index the metadata of all available actions in your workspace.
 - When a user starts a chat to perform a task, we search the MCP tools index for the most relevant tools based on the user’s query.
