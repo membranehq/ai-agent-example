@@ -96,7 +96,7 @@ To solve this problem, this example exposes a small number of tools to the LLM b
 
 Here's a diagram that shows how it works:
 
-![AI Agent Example Arch Frame 1](https://github.com/user-attachments/assets/c7127be2-0788-4714-86f7-55ba5fd6b587)
+![AI Agent Example Frame 1](https://github.com/user-attachments/assets/424a664f-4dff-4eab-9210-e51992b8b354)
 
 #### Summary
 
