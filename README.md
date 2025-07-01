@@ -71,7 +71,8 @@ To solve this problem, this example exposes a small number of tools to the LLM b
 
 Here's a diagram that shows how it works:
 
-![How it works](./docs/how-it-works.png)
+![AI Agent Example Arch Frame 1](https://github.com/user-attachments/assets/c7127be2-0788-4714-86f7-55ba5fd6b587)
+
 
 Summary:
 
