@@ -18,19 +18,19 @@ This is an example of an AI agent that uses the Integration App to provide integ
 
 ### Setup Guide 🔧
 
-1. **Clone the repository**
+**Clone the repository**
 
 ```bash
 git clone https://github.com/integration-app/ai-agent.git
 ```
 
-2. **Install dependencies**
+**Install dependencies**
 
 ```bash
 pnpm install
 ```
 
-3. **Configure environment variables**
+**Configure environment variables**
 
 ```bash
 cp .env.example .env
@@ -38,7 +38,7 @@ cp .env.example .env
 
 Then edit .env to add your API keys, index names, DB connection string, etc. (Comments and links are included for guidance.)
 
-4. **Create Pinecone indexes**
+**Create Pinecone indexes**
 
 You’ll need two vector indexes:
 
@@ -65,13 +65,13 @@ PINECONE_MEMBRANE_TOOLS="your-membrane-index"
 PINECONE_CLIENT_TOOLS="your-client-index"
 ```
 
-5. **Run database migrations**
+**Run database migrations**
 
 ```bash
 pnpm db:push
 ```
 
-6. Index all actions in Pinecone
+**Index all actions in Pinecone**
 
 ```bash
 pnpm pinecone:index-actions
