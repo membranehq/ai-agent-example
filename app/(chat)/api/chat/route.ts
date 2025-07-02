@@ -26,7 +26,6 @@ import { ChatSDKError } from '@/lib/errors';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
 import { getRelevantApps } from '@/lib/ai/tools/get-relevant-apps';
 import { getActions } from '@/lib/ai/tools/get-actions';
-import { connectApp } from '@/lib/ai/tools/connect-app';
 import { getMoreRelevantApp } from '@/lib/ai/tools/get-more-relevant-app';
 import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
 import { renderForm } from '@/lib/ai/tools/renderForm';
@@ -129,7 +128,6 @@ export async function POST(request: Request) {
         integrationAppCustomerAccessToken,
         user,
       }),
-      connectApp: connectApp(integrationAppCustomerAccessToken),
     };
 
     const exposedTools = await getChatExposedTools({
@@ -235,8 +233,8 @@ export async function POST(request: Request) {
           if (exposeToolResult) {
             if (
               exposeToolResult.success &&
-              exposeToolResult.data?.exposedToolsCount &&
-              exposeToolResult.data.exposedToolsCount > 0
+              exposeToolResult.data?.tools &&
+              exposeToolResult.data.tools.length > 0
             ) {
               shouldPopulateTools = true;
             }

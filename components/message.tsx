@@ -23,7 +23,6 @@ const PurePreviewMessage = ({
   message,
   vote,
   isLoading,
-
   reload,
   isReadonly,
   requiresScrollPadding,
@@ -56,13 +55,13 @@ const PurePreviewMessage = ({
     result: any;
     args: any;
   }) => {
-    if (toolName === 'connectApp') {
+    if (
+      toolName === 'getActions' &&
+      result.success === false &&
+      result.error?.type === 'connection_error'
+    ) {
       return (
-        <ConnectButton
-          integrationKey={result.integrationKey}
-          logoUri={result.logoUri}
-          append={append}
-        />
+        <ConnectButton integrationKey={result.error.app} append={append} />
       );
     }
 
@@ -159,7 +158,7 @@ const PurePreviewMessage = ({
                       <div
                         data-testid="message-content"
                         className={cn('flex flex-col gap-4', {
-                          'bg-primary text-primary-foreground px-3 py-2 rounded-xl':
+                          'bg-muted text-primary-foreground px-3 py-2 rounded-xl':
                             message.role === 'user',
                         })}
                       >

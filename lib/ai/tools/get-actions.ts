@@ -32,7 +32,7 @@ export const getActions = ({
 }: GetActionsProps) =>
   tool({
     description:
-      'Get related actions for the selected app. Run again if it returns exposedToolsCount as 0',
+      'Get related actions for the selected app. Run again if it returns tool count as 0',
     parameters: z.object({
       app: z.string().describe(`The key of the app to get actions for`),
       query: z
@@ -59,9 +59,10 @@ export const getActions = ({
         if (result.items.length === 0) {
           return {
             success: false,
-            data: {
+            error: {
               app,
-              text: `You don't have a connection to ${app}, connect to ${app} to get actions`,
+              type: 'connection_error',
+              message: `You don't have a connection to ${app}, Click the button above to connect to ${app}`,
             },
           };
         }
@@ -114,7 +115,6 @@ export const getActions = ({
         return {
           success: true,
           data: {
-            exposedToolsCount: searchResults.length,
             tools: searchResults.map((tool) => tool.toolKey),
           },
         };
@@ -122,8 +122,10 @@ export const getActions = ({
         console.error('Failed to get actions', error);
         return {
           success: false,
-          data: {
-            error: 'Failed to get actions due to an internal error',
+          error: {
+            type: 'internal_error',
+            message:
+              'Failed to get actions due to an internal error, this is not connection related error',
           },
         };
       }

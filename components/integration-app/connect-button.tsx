@@ -1,4 +1,4 @@
-import { useIntegrationApp } from '@integration-app/react';
+import { useIntegrationApp, useIntegration } from '@integration-app/react';
 import { Button } from '../ui/button';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -6,16 +6,16 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 
 interface ConnectButtonProps {
   integrationKey: string;
-  logoUri?: string;
   append?: UseChatHelpers['append'];
 }
 
 export const ConnectButton = ({
   integrationKey,
-  logoUri,
   append,
 }: ConnectButtonProps) => {
   const integrationApp = useIntegrationApp();
+  const { integration, loading: integrationLoading } =
+    useIntegration(integrationKey);
   const [state, setState] = useState<'idle' | 'connecting' | 'connected'>(
     'idle',
   );
@@ -29,12 +29,11 @@ export const ConnectButton = ({
 
       if (connection?.id) {
         setState('connected');
-
-        // Send "done" message to chat after successful connection
+        // Send "connected" message to chat after successful connection
         if (append) {
           append({
             role: 'user',
-            content: 'done',
+            content: 'connected',
           });
         }
       } else {
@@ -63,9 +62,9 @@ export const ConnectButton = ({
       ) : (
         'Connect App'
       )}
-      {logoUri && (
+      {integration?.logoUri && (
         <img
-          src={logoUri}
+          src={integration.logoUri}
           alt="App logo"
           className="ml-2 size-5 object-contain"
         />

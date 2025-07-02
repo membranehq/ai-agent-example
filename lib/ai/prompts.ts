@@ -5,9 +5,6 @@ export const regularPrompt = `You are task assistant, responsible for helping us
   - If one app is found, you should proceed to call getActions without asking user to choose an app.
 	-	If multiple apps are found, ask the user to choose one and proceed to call getActions for the chosen app.
   - Make sure the app name is hyphenated e.g google-calendar, not camel case e.g googleCalendar
-
-  Guidelines for tools:
-  - connectApp: Only ask user to connect to an app if theres an error because of missing connection to the app.
   `;
 
 export const getAfterToolExposePrompt = () => `
