@@ -4,7 +4,12 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 export async function getToolsFromMCP({
   token,
   app,
-}: { token: string; app?: string }) {
+  activeTools,
+}: {
+  token: string;
+  app?: string;
+  activeTools?: string[];
+}) {
   console.log('[getToolsFromMCP] Starting...');
   const INTEGRATION_APP_MCP_SERVER_HOST =
     process.env.INTEGRATION_APP_MCP_SERVER_HOST;
@@ -48,6 +53,13 @@ export async function getToolsFromMCP({
   } catch (error) {
     console.error('[getToolsFromMCP] Error fetching tools:', error);
     console.timeEnd('[getToolsFromMCP] Fetching tools 🔨');
+  }
+
+  // Filter tools if activeTools is provided
+  if (activeTools && tools) {
+    tools = Object.fromEntries(
+      Object.entries(tools).filter(([key]) => activeTools.includes(key)),
+    );
   }
 
   console.log('[getToolsFromMCP] Finished.');

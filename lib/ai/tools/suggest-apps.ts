@@ -5,9 +5,7 @@ import { searchIndexAndSuggestApps } from './utils/search-Index-and-suggest-apps
 /**
  * Search client tools index for relevant apps related to the user query
  */
-export const getRelevantApps = ({
-  user,
-}: { user: { id: string; name: string } }) =>
+export const suggestApps = ({ user }: { user: { id: string; name: string } }) =>
   tool({
     description: `See if you can find relevant apps for a user query if they are asking to perform an operation e.g:
     - What events do I have for today?

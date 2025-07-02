@@ -24,9 +24,9 @@ import type { Chat } from '@/lib/db/schema';
 import { differenceInSeconds } from 'date-fns';
 import { ChatSDKError } from '@/lib/errors';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
-import { getRelevantApps } from '@/lib/ai/tools/get-relevant-apps';
+import { suggestApps } from '@/lib/ai/tools/suggest-apps';
 import { getActions } from '@/lib/ai/tools/get-actions';
-import { getMoreRelevantApp } from '@/lib/ai/tools/get-more-relevant-app';
+import { suggestMoreApps } from '@/lib/ai/tools/suggest-more-apps';
 import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
 import { renderForm } from '@/lib/ai/tools/renderForm';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
@@ -119,10 +119,10 @@ export async function POST(request: Request) {
     };
 
     const defaultTools = {
-      getRelevantApps: getRelevantApps({
+      suggestApps: suggestApps({
         user,
       }),
-      getMoreRelevantApp: getMoreRelevantApp,
+      suggestMoreApps: suggestMoreApps,
       getActions: getActions({
         chatId: id,
         integrationAppCustomerAccessToken,
@@ -147,6 +147,7 @@ export async function POST(request: Request) {
     if (exposedTools.length > 0) {
       const toolsFromMCP = await getToolsFromMCP({
         token: integrationAppCustomerAccessToken,
+        activeTools: exposedTools,
       });
 
       mcpTools = toolsFromMCP.tools;
@@ -252,6 +253,7 @@ export async function POST(request: Request) {
 
           const { tools: mcpTools, mcpClient } = await getToolsFromMCP({
             token: integrationAppCustomerAccessToken,
+            activeTools: exposedTools,
           });
 
           const result1 = streamText({

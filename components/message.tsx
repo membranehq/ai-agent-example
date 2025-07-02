@@ -41,8 +41,8 @@ const PurePreviewMessage = ({
   const [mode, setMode] = useState<'view'>('view');
 
   const simplerName: Record<string, string> = {
-    getRelevantApps: 'Find App',
-    getMoreRelevantApp: 'Find More Apps',
+    suggestApps: 'Find App',
+    suggestMoreApps: 'Find More Apps',
     getActions: 'Find Action',
   };
 
@@ -89,7 +89,7 @@ const PurePreviewMessage = ({
         result={result}
         input={args}
       >
-        {['getRelevantApps', 'getMoreRelevantApp'].includes(toolName) &&
+        {['suggestApps', 'suggestMoreApps'].includes(toolName) &&
           result.apps?.length > 1 && (
             <div className="flex flex-row gap-2 mt-2">
               {result.apps?.map((app: any) => (

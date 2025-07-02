@@ -78,7 +78,7 @@ export async function searchIndexAndSuggestApps({
       answer,
     };
   } catch (error) {
-    console.error('Error in getRelevantApps', error);
+    console.error('Error in suggestApps', error);
     return {
       apps: [],
       query,
