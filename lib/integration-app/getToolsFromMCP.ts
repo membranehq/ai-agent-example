@@ -43,7 +43,7 @@ export async function getToolsFromMCP({
 
   console.timeEnd('[getToolsFromMCP] Init 🔌');
 
-  let tools = {};
+  let tools = null;
 
   try {
     console.time('[getToolsFromMCP] Fetching tools 🔨');
@@ -62,6 +62,5 @@ export async function getToolsFromMCP({
   }
 
   console.log('[getToolsFromMCP] Finished.');
-  
-  return { tools, mcpClient };
+  return { tools: tools || {}, mcpClient };
 }
