@@ -43,9 +43,8 @@ export async function getToolsFromMCP({
 
   console.timeEnd('[getToolsFromMCP] Init 🔌');
 
-  let tools = null;
+  let tools = {};
 
-  // Will throw an error is there are no tools so we need to catch it
   try {
     console.time('[getToolsFromMCP] Fetching tools 🔨');
     tools = await mcpClient.tools();
@@ -63,5 +62,6 @@ export async function getToolsFromMCP({
   }
 
   console.log('[getToolsFromMCP] Finished.');
-  return { tools: tools || {}, mcpClient };
+  
+  return { tools, mcpClient };
 }

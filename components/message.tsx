@@ -41,8 +41,8 @@ const PurePreviewMessage = ({
   const [mode, setMode] = useState<'view'>('view');
 
   const simplerName: Record<string, string> = {
-    suggestApps: 'Find App',
-    suggestMoreApps: 'Find More Apps',
+    suggestApps: 'Suggest Apps',
+    suggestMoreApps: 'Suggest More Apps',
     getActions: 'Find Action',
   };
 
