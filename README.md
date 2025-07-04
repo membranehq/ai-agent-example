@@ -1,8 +1,12 @@
 ## Integration App AI Agent Example
 
-This is an example of an AI agent that uses the Integration App MCP server. Rather than providing all tools to LLM at once, it provides a small number of tools based on the user's query.
+This is an example of an AI agent that uses the Integration App MCP server. Rather than exposing all available tools from the MCP server to the language model, it dynamically selects and provides only a small, relevant subset based on the user’s query.
 
-For a similar example where all tools are provided to LLM at once, see [ai-agent](https://github.com/integration-app/ai-agent).
+**Why is this useful?**
+
+- LLMs struggle when overloaded with too many tools, tool-selection accuracy drops dramatically as tool count increases
+- Narrowing down tools help you spend less since the token count for request to the LLM is reduced.
+- Most LLMs have a hard limit on number of tool that can be provided
 
 ### Prerequisites 🛠️
 
@@ -12,10 +16,10 @@ For a similar example where all tools are provided to LLM at once, see [ai-agent
 - **Pinecone** – a managed vector database used to store and query embeddings (e.g., for tool/data lookup).  
   [pinecone.io](https://www.pinecone.io/)
 
-- **Anthropic Claude** – the default LLM in this project (easily swapped for others if needed).  
+- **Anthropic Claude** – the default LLM in this project (can be easily swapped for others if needed).  
   [Learn about providers](https://sdk.vercel.ai/providers/ai-sdk-providers)
 
-- **PostgreSQL** – stores all chat/session logs; any Postgres setup works. You can use [Supabase](https://supabase.com/) for a free and easy setup.
+- **PostgreSQL** – Stores all chat history and user information. You can use [Supabase](https://supabase.com/) for a free and easy setup.
 
 ### Setup Guide 🔧
 
@@ -105,6 +109,3 @@ Here's a diagram that shows how it works:
 - If no relevant tool is found in the MCP index, the LLM will fall back to searching the full index of all available workspace actions.
 - The LLM is then provided with the most relevant tool to call based on the search results.
 - When a new app is connected, we re-index the MCP server with available actions.
-
-
-
