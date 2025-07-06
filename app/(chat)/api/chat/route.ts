@@ -3,6 +3,7 @@ import {
   appendResponseMessages,
   createDataStream,
   createDataStreamResponse,
+  type experimental_createMCPClient,
   type Tool,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
@@ -28,7 +29,7 @@ import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app
 import { suggestApps } from '@/lib/ai/tools/suggest-apps';
 import { getActions } from '@/lib/ai/tools/get-actions';
 import { suggestMoreApps } from '@/lib/ai/tools/suggest-more-apps';
-import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
+import { createMCPClient, getToolsFromMCP } from '@/lib/integration-app/mcp';
 import { renderForm } from '@/lib/ai/tools/renderForm';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { streamText } from './streamText';
@@ -138,6 +139,12 @@ export async function POST(request: Request) {
       }),
     };
 
+    // Don't initialize MCP yet
+    // This will be initialized when we need to get tools from MCP and will be reused for the rest of session
+    let mcpClient: Awaited<
+      ReturnType<typeof experimental_createMCPClient>
+    > | null = null;
+
     return createDataStreamResponse({
       execute: async (dataStream) => {
         await streamText(
@@ -163,9 +170,22 @@ export async function POST(request: Request) {
               let mcpTools: Record<string, any> = {};
 
               if (exposedToolsKeys.length > 0) {
+                if (!mcpClient) {
+                  const { mcpClient: newMCPClient, transport } =
+                    await createMCPClient(integrationAppCustomerAccessToken);
+
+                  mcpClient = newMCPClient;
+
+                  console.log(
+                    '>>> MCP Client Initialized with session id: ',
+                    transport.sessionId,
+                  );
+                }
+
                 const { tools: toolsFromMCP } = await getToolsFromMCP({
                   token: integrationAppCustomerAccessToken,
                   keys: exposedToolsKeys,
+                  mcpClient,
                 });
 
                 mcpTools = toolsFromMCP;

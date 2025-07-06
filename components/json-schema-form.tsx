@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { DataInput, type DataSchema } from '@integration-app/react';
 import { Button } from './ui/button';
 import '@integration-app/react/styles.css';
-import { ArrowRightIcon } from 'lucide-react';
+import { ArrowRightIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 
 export function JsonSchemaForm({
   schema,
@@ -18,6 +18,7 @@ export function JsonSchemaForm({
   formTitle?: string;
 }) {
   const [value, setValue] = useState<unknown>(defaultValues ?? {});
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleSubmit = () => {
     if (
@@ -37,22 +38,40 @@ export function JsonSchemaForm({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="bg">
-        <h3 className="text-lg font-semibold text-foreground">
-          Configure Parameters
-        </h3>
-        <p className="text-sm text-muted-foreground mt-1">{formTitle}</p>
+      <div className="bg flex justify-between items-start">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground">
+            Configure Parameters
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">{formTitle}</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="size-8 p-0"
+        >
+          {isCollapsed ? (
+            <ChevronDownIcon className="size-4" />
+          ) : (
+            <ChevronUpIcon className="size-4" />
+          )}
+        </Button>
       </div>
 
-      <DataInput
-        schema={schema}
-        value={value}
-        onChange={(importValue: unknown) => setValue(importValue)}
-      />
+      {!isCollapsed && (
+        <>
+          <DataInput
+            schema={schema}
+            value={value}
+            onChange={(importValue: unknown) => setValue(importValue)}
+          />
 
-      <Button className="self-end" type="button" onClick={handleSubmit}>
-        Continue <ArrowRightIcon className="w-4 h-4" />
-      </Button>
+          <Button className="self-end" type="button" onClick={handleSubmit}>
+            Continue <ArrowRightIcon className="size-4" />
+          </Button>
+        </>
+      )}
     </div>
   );
 }

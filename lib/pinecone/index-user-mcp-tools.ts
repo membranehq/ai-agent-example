@@ -1,5 +1,5 @@
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
-import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
+import { getToolsFromMCP } from '@/lib/integration-app/mcp';
 import type { ToolIndexItem } from '@/lib/types';
 import { Pinecone } from '@pinecone-database/pinecone';
 
@@ -35,9 +35,7 @@ export async function indexMcpTools({ user, app }: HandleConnectProps) {
 
   await mcpClient.close();
 
-  console.log(
-    `We got ${Object.keys(toolsForConnectedApp).length} tools`,
-  );
+  console.log(`We got ${Object.keys(toolsForConnectedApp).length} tools`);
 
   const pinecone = new Pinecone({
     apiKey: process.env.PINECONE_API_KEY as string,

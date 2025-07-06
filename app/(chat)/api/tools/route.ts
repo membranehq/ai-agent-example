@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
+import { getToolsFromMCP } from '@/lib/integration-app/mcp';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
 import { auth } from '@/app/(auth)/auth';
 
