@@ -7,7 +7,7 @@ import {
   type Tool,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
-import { regularPrompt } from '@/lib/ai/prompts';
+import { systemPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById,
   getChatById,
@@ -140,7 +140,8 @@ export async function POST(request: Request) {
     };
 
     // Don't initialize MCP yet
-    // This will be initialized when we need to get tools from MCP and will be reused for the rest of session
+    // This will be initialized when we need to get tools
+    // Once initialized, it will be reused for the rest of the session
     let mcpClient: Awaited<
       ReturnType<typeof experimental_createMCPClient>
     > | null = null;
@@ -154,7 +155,7 @@ export async function POST(request: Request) {
           },
           {
             model: myProvider.languageModel('chat-model'),
-            system: regularPrompt,
+            system: systemPrompt,
             messages,
             maxSteps: 20,
             experimental_generateMessageId: generateUUID,
@@ -240,6 +241,10 @@ export async function POST(request: Request) {
                   console.error('Error on finish', e);
                 }
               }
+            },
+            cleanup: async () => {
+              console.log('>>> Closing MCP client session...');
+              await mcpClient?.close();
             },
           },
         );

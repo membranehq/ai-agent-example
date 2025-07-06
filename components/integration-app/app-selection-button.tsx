@@ -34,6 +34,7 @@ export const AppSelectionButton = ({
     };
 
     fetchAppLogo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

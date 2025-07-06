@@ -1,4 +1,4 @@
-export const regularPrompt = `You are task assistant, responsible for helping users perform tasks across multiple apps.
+export const systemPrompt = `You are task assistant, responsible for helping users perform tasks across multiple apps.
 
  Here are some rules:
 	-	Keep responses concise and helpful.

@@ -7,7 +7,7 @@ import {
 import type { DataStreamWriter, ToolSet, UIMessage, Message } from 'ai';
 
 /**
- * Wrapper around ai sdk's streamText function. It calls streamText in a loop until and passed 
+ * Wrapper around ai sdk's streamText function. It calls streamText in a loop until and passed
  * tools on each iteration. This handles the case where tools may change between steps.
  *
  * @param dataStream - The data stream to write to
@@ -17,6 +17,7 @@ export const streamText = async (
   { dataStream }: { dataStream: DataStreamWriter; userMessage?: UIMessage },
   args: Omit<Parameters<typeof _streamText>[0], 'tools'> & {
     getTools: () => Promise<ToolSet>;
+    cleanup?: () => Promise<void>;
   },
 ) => {
   const {
@@ -24,6 +25,7 @@ export const streamText = async (
     maxRetries,
     messages: _messages,
     getTools,
+    cleanup,
     ...rest
   } = args;
   // Convert UI messages to proper Message objects with IDs if needed
@@ -93,6 +95,7 @@ export const streamText = async (
 
     if (!cont) {
       console.log(`Ending loop after ${steps} steps`);
+      await cleanup?.();
       break;
     }
   }
