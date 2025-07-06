@@ -46,7 +46,7 @@ const PurePreviewMessage = ({
   const simplerName: Record<string, string> = {
     suggestApps: 'Suggest Apps',
     suggestMoreApps: 'Suggest More Apps',
-    getActions: 'Find Action',
+    getActions: 'Find Actions',
   };
 
   const renderToolResult = ({
