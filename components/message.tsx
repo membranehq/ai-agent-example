@@ -17,6 +17,7 @@ import { AppSelectionButton } from './integration-app/app-selection-button';
 import { JsonSchemaForm } from './json-schema-form';
 import { Loader } from 'lucide-react';
 import { ToolResultDisplay } from './tool-result-display';
+import { StaticTools } from '@/lib/ai/ constants';
 
 const PurePreviewMessage = ({
   chatId,
@@ -83,12 +84,31 @@ const PurePreviewMessage = ({
       );
     }
 
+    const constructCleanMCPToolName = (toolName: string) => {
+      const [firstPart = '', secondPart = ''] = toolName.split('_');
+      const words = `${firstPart} ${secondPart.replace(/-/g, ' ')}`
+        .trim()
+        .split(' ');
+
+      const titleCased = words
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+
+      return titleCased;
+    };
+
+    const isStaticTool = Object.keys(StaticTools).includes(toolName);
+    const toolNameToDisplay = isStaticTool
+      ? (simplerName[toolName] ?? toolName)
+      : constructCleanMCPToolName(toolName);
+
     return (
-      <ToolResultDisplay
-        toolName={simplerName[toolName] ?? toolName}
-        result={result}
-        input={args}
-      >
+      <>
+        <ToolResultDisplay
+          toolName={toolNameToDisplay}
+          result={result}
+          input={args}
+        />
         {['suggestApps', 'suggestMoreApps'].includes(toolName) &&
           result.apps?.length > 1 && (
             <div className="flex flex-row gap-2 mt-2">
@@ -101,7 +121,7 @@ const PurePreviewMessage = ({
               ))}
             </div>
           )}
-      </ToolResultDisplay>
+      </>
     );
   };
 

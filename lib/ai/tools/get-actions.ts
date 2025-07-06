@@ -14,16 +14,12 @@ interface GetActionsProps {
     name: string;
   };
 } /**
- * Ensures that user is connected to an app and exposes tools for the app
+ * Ensures that user is connected to an app if not, return a structured (It can be used to render a connect button)
  *
  * Exposure process:
- * - Make sure user is connected to the app
- * - Get tools for the app from an MCP server and index them
  * - Find the most relevant tools for the user query, if no results are found,
- * retry a few times to give the index time to stabilize
+ * retry a few times to give the index time to stabilize, if still no results, index the tools and search again
  * - Store the tools in the chat context
- *
- * IF some tools were added to the chat context, we call the LLM again with the chat context tools
  */
 export const getActions = ({
   chatId,
@@ -98,7 +94,12 @@ export const getActions = ({
           );
         };
 
-        // Try to search first, if no results after some retries, index tools and search again
+        /**
+         * After a connection is made, we refresh the tools index, see /webhooks/
+         *
+         * So we expect the index to be updated and tools to be available for search
+         * After a few retries, if no tools are found, we index the tools and search again
+         */
         const searchResults = await searchWithRetry().catch(async () => {
           await indexMcpTools({ user, app });
           return await searchWithRetry();

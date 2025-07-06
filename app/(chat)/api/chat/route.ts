@@ -3,6 +3,7 @@ import {
   appendResponseMessages,
   createDataStream,
   createDataStreamResponse,
+  type Tool,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
 import { regularPrompt } from '@/lib/ai/prompts';
@@ -31,6 +32,11 @@ import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
 import { renderForm } from '@/lib/ai/tools/renderForm';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { streamText } from './streamText';
+import type { StaticTools } from '@/lib/ai/ constants';
+
+// ?dynamic Start session for chatId: MCP return no tools
+// We send message to mcp and tell it to tools to use
+// Next fetch should produce the tools
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
@@ -119,11 +125,11 @@ export async function POST(request: Request) {
       name: session.user.name ?? '',
     };
 
-    const defaultTools = {
+    const defaultTools: Record<keyof typeof StaticTools, Tool> = {
       suggestApps: suggestApps({
         user,
       }),
-      suggestMoreApps: suggestMoreApps,
+      suggestMoreApps,
       renderForm: renderForm(integrationAppCustomerAccessToken),
       getActions: getActions({
         chatId: id,
