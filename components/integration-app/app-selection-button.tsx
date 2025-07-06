@@ -1,6 +1,7 @@
 import { useIntegrationApp } from '@integration-app/react';
 import { Button } from '../ui/button';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 interface AppSelectionButtonProps {
   integrationKey: string;
@@ -33,7 +34,7 @@ export const AppSelectionButton = ({
     };
 
     fetchAppLogo();
-  }, [integrationKey]);
+  }, []);
 
   return (
     <Button
@@ -44,10 +45,10 @@ export const AppSelectionButton = ({
       onClick={onClick}
     >
       {logoUri && (
-        <img
+        <Image
           src={logoUri}
           alt={`${integrationKey} logo`}
-          className="w-4 h-4 object-contain"
+          className="size-4 object-contain"
         />
       )}
       {name || integrationKey}

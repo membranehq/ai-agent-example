@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import Image from 'next/image';
 
 interface ConnectButtonProps {
   integrationKey: string;
@@ -65,7 +66,7 @@ export const ConnectButton = ({
         'Connect App'
       )}
       {integration?.logoUri && (
-        <img
+        <Image
           src={integration.logoUri}
           alt="App logo"
           className="ml-2 size-5 object-contain"

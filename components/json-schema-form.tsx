@@ -4,14 +4,14 @@ import { useState } from 'react';
 import { DataInput, type DataSchema } from '@integration-app/react';
 import { Button } from './ui/button';
 import '@integration-app/react/styles.css';
-import { ArrowRightIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { ArrowRightIcon, CheckIcon, FormInputIcon } from 'lucide-react';
 
 export function JsonSchemaForm({
   schema,
   onSubmit,
   defaultValues,
   formTitle,
-  isCollapsed: _isCollapsed,
+  isCollapsed,
 }: {
   schema: DataSchema;
   onSubmit: (data: any) => void;
@@ -20,7 +20,6 @@ export function JsonSchemaForm({
   isCollapsed?: boolean;
 }) {
   const [value, setValue] = useState<unknown>(defaultValues ?? {});
-  const [isCollapsed, setIsCollapsed] = useState(_isCollapsed ?? false);
 
   const handleSubmit = () => {
     if (
@@ -41,24 +40,13 @@ export function JsonSchemaForm({
   return (
     <div className="flex flex-col gap-4">
       <div className="bg flex justify-between items-start">
-        <div>
-          <h3 className="text-lg font-semibold text-foreground">
-            Configure Parameters
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1">{formTitle}</p>
+        <div className="text-sm text-muted-foreground flex items-center gap-2 font-medium">
+          <FormInputIcon className="size-4" />
+          {formTitle}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="size-8 p-0"
-        >
-          {isCollapsed ? (
-            <ChevronDownIcon className="size-4" />
-          ) : (
-            <ChevronUpIcon className="size-4" />
-          )}
-        </Button>
+        {isCollapsed && (
+          <CheckIcon strokeWidth={3} size={18} className="text-green-600" />
+        )}
       </div>
 
       {!isCollapsed && (
