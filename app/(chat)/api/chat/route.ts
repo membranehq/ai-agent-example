@@ -2,10 +2,10 @@ import {
   appendClientMessage,
   appendResponseMessages,
   createDataStream,
-  streamText,
+  createDataStreamResponse,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
-import { getAfterToolExposePrompt, regularPrompt } from '@/lib/ai/prompts';
+import { regularPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById,
   getChatById,
@@ -30,6 +30,7 @@ import { suggestMoreApps } from '@/lib/ai/tools/suggest-more-apps';
 import { getToolsFromMCP } from '@/lib/integration-app/getToolsFromMCP';
 import { renderForm } from '@/lib/ai/tools/renderForm';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
+import { streamText } from './streamText';
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
@@ -123,6 +124,7 @@ export async function POST(request: Request) {
         user,
       }),
       suggestMoreApps: suggestMoreApps,
+      renderForm: renderForm(integrationAppCustomerAccessToken),
       getActions: getActions({
         chatId: id,
         integrationAppCustomerAccessToken,
@@ -130,148 +132,47 @@ export async function POST(request: Request) {
       }),
     };
 
-    const exposedTools = await getChatExposedTools({
-      chatId: id,
-    });
-
-    const activeTools = [
-      ...exposedTools,
-      ...Object.keys(defaultTools),
-    ] as (keyof typeof defaultTools)[];
-
-    let mcpTools: Record<string, any> = {};
-
-    /**
-     * Don't list tools except there's exposed tools
-     */
-    if (exposedTools.length > 0) {
-      const toolsFromMCP = await getToolsFromMCP({
-        token: integrationAppCustomerAccessToken,
-        activeTools: exposedTools,
-      });
-
-      mcpTools = toolsFromMCP.tools;
-    }
-
-    const stream = createDataStream({
+    return createDataStreamResponse({
       execute: async (dataStream) => {
-        const result = streamText({
-          experimental_activeTools: activeTools,
-          model: myProvider.languageModel('chat-model'),
-          system: regularPrompt,
-          messages,
-          maxSteps: 10,
-          experimental_generateMessageId: generateUUID,
-          toolCallStreaming: true,
-          onError: (error) => {
-            console.error('RESULT1: Error in chat route');
-            console.log(error);
-
-            dataStream.writeData({
-              type: 'error',
-              message: (error.error as Error).message,
-            });
+        await streamText(
+          {
+            dataStream,
+            userMessage: message,
           },
-          tools: {
-            ...mcpTools,
-            ...defaultTools,
-          },
-
-          onFinish: async ({ response }) => {
-            if (session.user?.id) {
-              try {
-                const assistantId = getTrailingMessageId({
-                  messages: response.messages.filter(
-                    (message) => message.role === 'assistant',
-                  ),
-                });
-
-                if (!assistantId) {
-                  throw new Error('No assistant message found!');
-                }
-
-                const [, assistantMessage] = appendResponseMessages({
-                  messages: [message],
-                  responseMessages: response.messages,
-                });
-
-                await saveMessages({
-                  messages: [
-                    {
-                      id: assistantId,
-                      chatId: id,
-                      role: assistantMessage.role,
-                      parts: assistantMessage.parts,
-                      attachments:
-                        assistantMessage.experimental_attachments ?? [],
-                      createdAt: new Date(),
-                    },
-                  ],
-                });
-              } catch (_) {
-                console.error('Failed to save chat');
-              }
-            }
-          },
-        });
-
-        result.consumeStream();
-
-        result.mergeIntoDataStream(dataStream, {
-          sendReasoning: true,
-          experimental_sendFinish: false,
-        });
-
-        const steps = await result.steps;
-
-        let shouldPopulateTools = false;
-
-        for (const step of steps) {
-          const exposeToolResult = step.toolResults.find(
-            (toolResult) => toolResult.toolName === 'getActions',
-          )?.result;
-
-          if (exposeToolResult) {
-            if (
-              exposeToolResult.success &&
-              exposeToolResult.data?.tools &&
-              exposeToolResult.data.tools.length > 0
-            ) {
-              shouldPopulateTools = true;
-            }
-
-            break;
-          }
-        }
-
-        if (shouldPopulateTools) {
-          const exposedTools = await getChatExposedTools({
-            chatId: id,
-          });
-
-          const afterToolExposePrompt = getAfterToolExposePrompt();
-
-          const { tools: mcpTools, mcpClient } = await getToolsFromMCP({
-            token: integrationAppCustomerAccessToken,
-            activeTools: exposedTools,
-          });
-
-          const result1 = streamText({
+          {
             model: myProvider.languageModel('chat-model'),
-            system: afterToolExposePrompt,
+            system: regularPrompt,
             messages,
-            maxSteps: 1,
+            maxSteps: 20,
             experimental_generateMessageId: generateUUID,
             toolCallStreaming: true,
-            // @ts-ignore
-            experimental_activeTools: [...exposedTools, 'renderForm'],
-            tools: {
-              ...mcpTools,
-              renderForm: renderForm(integrationAppCustomerAccessToken),
+            getTools: async () => {
+              const exposedToolsKeys = await getChatExposedTools({
+                chatId: id,
+              });
+
+              /**
+               * Don't list tools except there's exposed tools
+               */
+              let mcpTools: Record<string, any> = {};
+
+              if (exposedToolsKeys.length > 0) {
+                const { tools: toolsFromMCP } = await getToolsFromMCP({
+                  token: integrationAppCustomerAccessToken,
+                  keys: exposedToolsKeys,
+                });
+
+                mcpTools = toolsFromMCP;
+              }
+
+              return {
+                ...mcpTools,
+                ...defaultTools,
+              };
             },
             onError: (error) => {
-              console.error('RESULT2: Error in chat route');
-              console.error(error);
+              console.error('onError: Error in chat route');
+              console.log(error);
 
               dataStream.writeData({
                 type: 'error',
@@ -279,55 +180,51 @@ export async function POST(request: Request) {
               });
             },
             onFinish: async ({ response }) => {
-              await mcpClient.close();
+              if (session.user?.id) {
+                try {
+                  const assistantId = getTrailingMessageId({
+                    messages: response.messages.filter(
+                      (message) => message.role === 'assistant',
+                    ),
+                  });
 
-              try {
-                const assistantId = getTrailingMessageId({
-                  messages: response.messages.filter(
-                    (message) => message.role === 'assistant',
-                  ),
-                });
+                  if (!assistantId) {
+                    throw new Error('No assistant message found!');
+                  }
 
-                if (!assistantId) {
-                  throw new Error('No assistant message found!');
+                  const [, assistantMessage] = appendResponseMessages({
+                    messages: [message],
+                    responseMessages: response.messages,
+                  });
+
+                  await saveMessages({
+                    messages: [
+                      {
+                        id: assistantId,
+                        chatId: id,
+                        role: assistantMessage.role,
+                        parts: assistantMessage.parts,
+                        attachments:
+                          assistantMessage.experimental_attachments ?? [],
+                        createdAt: new Date(),
+                      },
+                    ],
+                  });
+                } catch (e) {
+                  console.error('Error on finish', e);
                 }
-
-                const [, assistantMessage] = appendResponseMessages({
-                  messages: [message],
-                  responseMessages: response.messages,
-                });
-
-                await saveMessages({
-                  messages: [
-                    {
-                      id: assistantId,
-                      chatId: id,
-                      role: assistantMessage.role,
-                      parts: assistantMessage.parts,
-                      attachments:
-                        assistantMessage.experimental_attachments ?? [],
-                      createdAt: new Date(),
-                    },
-                  ],
-                });
-              } catch (_) {
-                console.error('Failed to save chat');
               }
             },
-          });
-
-          result1.mergeIntoDataStream(dataStream, {
-            experimental_sendStart: false,
-            experimental_sendFinish: true,
-          });
-        }
+          },
+        );
       },
-      onError: () => {
+      onError: (error) => {
+        console.error('createDataStreamResponse:');
+        console.log(error);
+
         return 'Oops, an error occurred!';
       },
     });
-
-    return new Response(stream);
   } catch (error) {
     console.error('Error in chat route', error);
     return new ChatSDKError('others').toResponse();
