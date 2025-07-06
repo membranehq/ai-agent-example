@@ -108,6 +108,7 @@ const PurePreviewMessage = ({
           toolName={toolNameToDisplay}
           result={result}
           input={args}
+          isStaticTool={isStaticTool}
         />
         {['suggestApps', 'suggestMoreApps'].includes(toolName) &&
           result.apps?.length > 1 && (

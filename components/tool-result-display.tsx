@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
+import { CheckIcon, ChevronsUpDownIcon, Cloud } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from './ui/button';
 
@@ -8,12 +8,14 @@ interface ToolResultDisplayProps {
   toolName: string;
   result: any;
   input: any;
+  isStaticTool?: boolean;
 }
 
 export const ToolResultDisplay = ({
   toolName,
   result,
   input,
+  isStaticTool = false,
 }: ToolResultDisplayProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -27,6 +29,7 @@ export const ToolResultDisplay = ({
       >
         <CheckIcon strokeWidth={3} size={18} className="text-green-600" />
         <span className="text-sm font-medium text-foreground">{toolName}</span>
+        {!isStaticTool && <Cloud size={14} className="text-muted-foreground" />}
         <ChevronsUpDownIcon
           size={14}
           className="transition-transform duration-200"
@@ -36,7 +39,7 @@ export const ToolResultDisplay = ({
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
           isExpanded
-            ? 'opacity-100 mt-3 pt-3 overflow-y-auto'
+            ? 'opacity-100 pt-3 overflow-y-auto'
             : 'max-h-0 opacity-0'
         }`}
       >
