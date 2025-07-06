@@ -7,8 +7,9 @@ import {
 import type { DataStreamWriter, ToolSet, UIMessage, Message } from 'ai';
 
 /**
- * Wrapper around ai sdk's streamText function. It calls streamText in a loop until and passed
- * tools on each iteration. This handles the case where tools may change between steps.
+ * Wrapper around ai sdk's streamText function. It calls streamText in a loop
+ * and pass tools on each iteration. This handles the case where tools may change
+ * between steps.
  *
  * @param dataStream - The data stream to write to
  * @param args - The arguments to pass to the streamText function
