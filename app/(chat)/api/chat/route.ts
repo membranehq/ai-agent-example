@@ -35,10 +35,6 @@ import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { streamText } from './streamText';
 import type { StaticTools } from '@/lib/ai/ constants';
 
-// ?dynamic Start session for chatId: MCP return no tools
-// We send message to mcp and tell it to tools to use
-// Next fetch should produce the tools
-
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
 
@@ -165,11 +161,11 @@ export async function POST(request: Request) {
                 chatId: id,
               });
 
+              let mcpTools: Record<string, any> = {};
+
               /**
                * Don't list tools except there's exposed tools
                */
-              let mcpTools: Record<string, any> = {};
-
               if (exposedToolsKeys.length > 0) {
                 if (!mcpClient) {
                   const { mcpClient: newMCPClient, transport } =
