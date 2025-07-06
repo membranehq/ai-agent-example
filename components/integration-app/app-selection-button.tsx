@@ -5,11 +5,13 @@ import { useEffect, useState } from 'react';
 interface AppSelectionButtonProps {
   integrationKey: string;
   onClick: () => void;
+  disabled?: boolean;
 }
 
 export const AppSelectionButton = ({
   integrationKey,
   onClick,
+  disabled,
 }: AppSelectionButtonProps) => {
   const [logoUri, setLogoUri] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
@@ -35,6 +37,7 @@ export const AppSelectionButton = ({
 
   return (
     <Button
+      disabled={disabled}
       size="sm"
       variant="outline"
       className="text-sm flex items-center gap-2"

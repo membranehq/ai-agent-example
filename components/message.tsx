@@ -28,6 +28,7 @@ const PurePreviewMessage = ({
   isReadonly,
   requiresScrollPadding,
   append,
+  isLastMessage,
 }: {
   chatId: string;
   message: UIMessage;
@@ -38,6 +39,7 @@ const PurePreviewMessage = ({
   isReadonly: boolean;
   requiresScrollPadding: boolean;
   append: UseChatHelpers['append'];
+  isLastMessage: boolean;
 }) => {
   const [mode, setMode] = useState<'view'>('view');
 
@@ -51,7 +53,9 @@ const PurePreviewMessage = ({
     toolName,
     result,
     args,
+    isLastMessage,
   }: {
+    isLastMessage: boolean;
     toolName: string;
     result: any;
     args: any;
@@ -62,7 +66,11 @@ const PurePreviewMessage = ({
       result.error?.type === 'connection_error'
     ) {
       return (
-        <ConnectButton integrationKey={result.error.app} append={append} />
+        <ConnectButton
+          disabled={!isLastMessage}
+          integrationKey={result.error.app}
+          append={append}
+        />
       );
     }
 
@@ -70,6 +78,7 @@ const PurePreviewMessage = ({
       return (
         <div className="bg-muted p-4 rounded-lg text-black">
           <JsonSchemaForm
+            isCollapsed={!isLastMessage}
             formTitle={result.formTitle}
             schema={result.toolInputSchema}
             defaultValues={result.inputsAlreadyProvided}
@@ -115,6 +124,7 @@ const PurePreviewMessage = ({
             <div className="flex flex-row gap-2 mt-2">
               {result.apps?.map((app: any) => (
                 <AppSelectionButton
+                  disabled={!isLastMessage}
                   key={app}
                   integrationKey={app}
                   onClick={() => append({ role: 'user', content: app })}
@@ -208,7 +218,12 @@ const PurePreviewMessage = ({
 
                   return (
                     <div key={toolCallId}>
-                      {renderToolResult({ toolName, result, args })}
+                      {renderToolResult({
+                        toolName,
+                        result,
+                        args,
+                        isLastMessage,
+                      })}
                     </div>
                   );
                 }

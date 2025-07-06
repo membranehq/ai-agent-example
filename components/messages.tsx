@@ -64,6 +64,7 @@ function PureMessages({
           requiresScrollPadding={
             hasSentMessage && index === messages.length - 1
           }
+          isLastMessage={index === messages.length - 1}
           append={append}
         />
       ))}

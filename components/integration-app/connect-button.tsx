@@ -7,11 +7,13 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 interface ConnectButtonProps {
   integrationKey: string;
   append?: UseChatHelpers['append'];
+  disabled?: boolean;
 }
 
 export const ConnectButton = ({
   integrationKey,
   append,
+  disabled,
 }: ConnectButtonProps) => {
   const integrationApp = useIntegrationApp();
   const { integration, loading: integrationLoading } =
@@ -50,7 +52,7 @@ export const ConnectButton = ({
       variant="outline"
       className="border-gray-300 text-gray-700 dark:border-gray-600 dark:text-gray-300"
       onClick={handleConnect}
-      disabled={state === 'connecting' || state === 'connected'}
+      disabled={state === 'connecting' || state === 'connected' || disabled}
     >
       {state === 'connecting' ? (
         <>

@@ -11,14 +11,16 @@ export function JsonSchemaForm({
   onSubmit,
   defaultValues,
   formTitle,
+  isCollapsed: _isCollapsed,
 }: {
   schema: DataSchema;
   onSubmit: (data: any) => void;
   defaultValues?: Record<string, unknown>;
   formTitle?: string;
+  isCollapsed?: boolean;
 }) {
   const [value, setValue] = useState<unknown>(defaultValues ?? {});
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(_isCollapsed ?? false);
 
   const handleSubmit = () => {
     if (
