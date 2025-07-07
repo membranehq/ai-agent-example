@@ -1,4 +1,4 @@
-import { experimental_createMCPClient, type Tool, type ToolSet } from 'ai';
+import { experimental_createMCPClient, type ToolSet } from 'ai';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
 export const createMCPClient = async (token: string, app?: string) => {
