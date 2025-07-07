@@ -65,6 +65,7 @@ function PureMessages({
             hasSentMessage && index === messages.length - 1
           }
           isLastMessage={index === messages.length - 1}
+          messagesAfterCount={messages.length - 1 - index}
           append={append}
         />
       ))}

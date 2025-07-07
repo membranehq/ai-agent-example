@@ -29,6 +29,7 @@ const PurePreviewMessage = ({
   requiresScrollPadding,
   append,
   isLastMessage,
+  messagesAfterCount,
 }: {
   chatId: string;
   message: UIMessage;
@@ -40,6 +41,7 @@ const PurePreviewMessage = ({
   requiresScrollPadding: boolean;
   append: UseChatHelpers['append'];
   isLastMessage: boolean;
+  messagesAfterCount: number;
 }) => {
   const [mode, setMode] = useState<'view'>('view');
 
@@ -54,11 +56,13 @@ const PurePreviewMessage = ({
     result,
     args,
     isLastMessage,
+    messagesAfterCount,
   }: {
     isLastMessage: boolean;
     toolName: string;
     result: any;
     args: any;
+    messagesAfterCount: number;
   }) => {
     if (
       toolName === 'getActions' &&
@@ -67,7 +71,7 @@ const PurePreviewMessage = ({
     ) {
       return (
         <ConnectButton
-          disabled={!isLastMessage}
+          disabled={messagesAfterCount > 2}
           integrationKey={result.error.app}
           append={append}
         />
@@ -124,7 +128,7 @@ const PurePreviewMessage = ({
             <div className="flex flex-row gap-2 mt-2">
               {result.apps?.map((app: any) => (
                 <AppSelectionButton
-                  disabled={!isLastMessage}
+                  disabled={messagesAfterCount > 2}
                   key={app}
                   integrationKey={app}
                   onClick={() => append({ role: 'user', content: app })}
@@ -223,6 +227,7 @@ const PurePreviewMessage = ({
                         result,
                         args,
                         isLastMessage,
+                        messagesAfterCount,
                       })}
                     </div>
                   );
@@ -252,6 +257,8 @@ export const PreviewMessage = memo(
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.message.id !== nextProps.message.id) return false;
     if (prevProps.requiresScrollPadding !== nextProps.requiresScrollPadding)
+      return false;
+    if (prevProps.messagesAfterCount !== nextProps.messagesAfterCount)
       return false;
     if (!equal(prevProps.message.parts, nextProps.message.parts)) return false;
     if (!equal(prevProps.vote, nextProps.vote)) return false;
