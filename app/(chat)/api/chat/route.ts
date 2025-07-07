@@ -33,7 +33,7 @@ import { createMCPClient, getToolsFromMCP } from '@/lib/integration-app/mcp';
 import { renderForm } from '@/lib/ai/tools/renderForm';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { streamText } from './streamText';
-import type { StaticTools } from '@/lib/ai/ constants';
+import type { StaticTools } from '@/lib/ai/constants';
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;

@@ -17,7 +17,7 @@ import { AppSelectionButton } from './integration-app/app-selection-button';
 import { JsonSchemaForm } from './json-schema-form';
 import { Loader } from 'lucide-react';
 import { ToolResultDisplay } from './tool-result-display';
-import { StaticTools } from '@/lib/ai/ constants';
+import { StaticTools } from '@/lib/ai/constants';
 import { Skeleton } from './ui/skeleton';
 
 const PurePreviewMessage = ({
