@@ -1,4 +1,4 @@
-import { experimental_createMCPClient, type Tool } from 'ai';
+import { experimental_createMCPClient, type Tool, type ToolSet } from 'ai';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
 export const createMCPClient = async (token: string, app?: string) => {
@@ -52,35 +52,35 @@ export async function getToolsFromMCP({
   keys,
   mcpClient: _mcpClient,
 }: GetToolsFromMCPArgs) {
-  console.log('>>> [getToolsFromMCP] Starting...');
+  console.log('>>> [getToolsFromMCP] Fetching tools 🔨');
 
   console.time('>>> [getToolsFromMCP] Init 🔌');
   const mcpClient = _mcpClient ?? (await createMCPClient(token, app)).mcpClient;
   console.timeEnd('>>> [getToolsFromMCP] Init 🔌');
 
-  let tools: Record<string, Tool> | null = null;
-
   try {
     console.time('>>> [getToolsFromMCP] tools/list 🔨');
-    tools = await mcpClient.tools();
+    const allTools = await mcpClient.tools();
+    console.log(`>> ${Object.keys(allTools).length} Tools received`);
     console.timeEnd('>>> [getToolsFromMCP] tools/list 🔨');
 
-    console.log(`>> ${Object.keys(tools).length} Tools received`);
+    let filteredTools: ToolSet = {};
+
+    // If list of tools needed is passed, we'll filter MCP tools
+    if (keys && keys.length > 0 && allTools) {
+      filteredTools = Object.fromEntries(
+        Object.entries(allTools).filter(([key]) => keys.includes(key)),
+      );
+
+      console.log(`>> Tools after filtering`, Object.keys(filteredTools));
+    }
+
+    // if keys was passed, we'll return the filtered tools, otherwise we'll return all tools
+    return { tools: keys ? filteredTools : allTools, mcpClient };
   } catch (error) {
     console.error('>>> [getToolsFromMCP] Error fetching tools:', error);
     console.timeEnd('>>> [getToolsFromMCP] Fetching tools 🔨');
-  }
 
-  // If activeTools is provided, only return tools that are in the activeTools array
-  if (keys && tools) {
-    tools = Object.fromEntries(
-      Object.entries(tools).filter(([key]) => keys.includes(key)),
-    );
+    return { tools: {} as ToolSet, mcpClient };
   }
-
-  if (tools) {
-    console.log(`>> Tools after filtering`, Object.keys(tools));
-  }
-  console.log('>>> [getToolsFromMCP] Finished.');
-  return { tools: tools || {}, mcpClient };
 }
