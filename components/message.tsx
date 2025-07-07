@@ -141,6 +141,9 @@ const PurePreviewMessage = ({
     );
   };
 
+  const lastPartIsToolInvocation =
+    message.parts[message.parts.length - 1].type === 'tool-invocation';
+
   return (
     <AnimatePresence>
       <motion.div
@@ -236,7 +239,7 @@ const PurePreviewMessage = ({
               }
             })}
 
-            {!isReadonly && (
+            {!isReadonly && !lastPartIsToolInvocation && (
               <MessageActions
                 key={`action-${message.id}`}
                 chatId={chatId}
