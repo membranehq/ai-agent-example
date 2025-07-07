@@ -18,6 +18,7 @@ import { JsonSchemaForm } from './json-schema-form';
 import { Loader } from 'lucide-react';
 import { ToolResultDisplay } from './tool-result-display';
 import { StaticTools } from '@/lib/ai/ constants';
+import { Skeleton } from './ui/skeleton';
 
 const PurePreviewMessage = ({
   chatId,
@@ -243,6 +244,14 @@ const PurePreviewMessage = ({
                 vote={vote}
                 isLoading={isLoading}
               />
+            )}
+
+            {isLoading && message.role === 'assistant' && (
+              <div className="flex flex-col gap-2 mt-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
             )}
           </div>
         </div>
