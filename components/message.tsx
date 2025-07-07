@@ -82,7 +82,7 @@ const PurePreviewMessage = ({
       return (
         <div className="bg-muted p-4 rounded-lg text-black">
           <JsonSchemaForm
-            isCollapsed={!isLastMessage}
+            isCollapsed={messagesAfterCount > 2}
             formTitle={result.formTitle}
             schema={result.toolInputSchema}
             defaultValues={result.inputsAlreadyProvided}
