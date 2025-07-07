@@ -67,6 +67,8 @@ export const ConnectButton = ({
       )}
       {integration?.logoUri && (
         <Image
+          width={16}
+          height={16}
           src={integration.logoUri}
           alt="App logo"
           className="ml-2 size-5 object-contain"

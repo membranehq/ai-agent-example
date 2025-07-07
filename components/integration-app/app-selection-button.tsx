@@ -47,6 +47,8 @@ export const AppSelectionButton = ({
     >
       {logoUri && (
         <Image
+          width={16}
+          height={16}
           src={logoUri}
           alt={`${integrationKey} logo`}
           className="size-4 object-contain"
