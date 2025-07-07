@@ -52,13 +52,17 @@ export const getActions = ({
           integrationKey: app,
         });
 
-        if (result.items.length === 0) {
+        const isDisconnected = result.items?.[0]?.disconnected === true;
+
+        if (result.items.length === 0 || isDisconnected) {
           return {
             success: false,
             error: {
               app,
-              type: 'connection_error',
-              message: `You don't have a connection to ${app}, Click the button above to connect to ${app}`,
+              type: isDisconnected ? 'needs_reconnect' : 'not_connected',
+              message: isDisconnected
+                ? `You need to reconnect to ${app} to use it, click the button above to reconnect`
+                : `You don't have a connection to ${app}, Click the button above to connect to ${app}`,
             },
           };
         }

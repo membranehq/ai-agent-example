@@ -67,7 +67,7 @@ const PurePreviewMessage = ({
     if (
       toolName === 'getActions' &&
       result.success === false &&
-      result.error?.type === 'connection_error'
+      ['needs_reconnect', 'not_connected'].includes(result.error?.type)
     ) {
       return (
         <ConnectButton

@@ -63,7 +63,7 @@ export const ConnectButton = ({
       ) : state === 'connected' ? (
         'Connected'
       ) : (
-        'Connect App'
+        'Connect'
       )}
       {integration?.logoUri && (
         <Image
