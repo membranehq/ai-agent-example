@@ -13,14 +13,7 @@ interface GetActionsProps {
     id: string;
     name: string;
   };
-} /**
- * Ensures that user is connected to an app if not, return a structured (It can be used to render a connect button)
- *
- * Exposure process:
- * - Find the most relevant tools for the user query, if no results are found,
- * retry a few times to give the index time to stabilize, if still no results, index the tools and search again
- * - Store the tools in the chat context
- */
+}
 export const getActions = ({
   chatId,
   integrationAppCustomerAccessToken,

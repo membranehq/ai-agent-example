@@ -1,0 +1,3 @@
+export const MCP_ERROR_CODES = {
+  INVALID_SESSION_ID: -32000,
+};

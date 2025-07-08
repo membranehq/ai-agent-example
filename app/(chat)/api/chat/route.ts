@@ -3,7 +3,6 @@ import {
   appendResponseMessages,
   createDataStream,
   createDataStreamResponse,
-  type experimental_createMCPClient,
   type Tool,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
@@ -11,7 +10,6 @@ import { systemPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById,
   getChatById,
-  getChatExposedTools,
   getMessageCountByUserId,
   getMessagesByChatId,
   getStreamIdsByChatId,
@@ -29,11 +27,12 @@ import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app
 import { suggestApps } from '@/lib/ai/tools/suggest-apps';
 import { getActions } from '@/lib/ai/tools/get-actions';
 import { suggestMoreApps } from '@/lib/ai/tools/suggest-more-apps';
-import { createMCPClient, getToolsFromMCP } from '@/lib/integration-app/mcp';
 import { renderForm } from '@/lib/ai/tools/renderForm';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { streamText } from './streamText';
 import type { StaticTools } from '@/lib/ai/constants';
+import { MCPSessionManager } from '@/lib/mcp/mcp-session';
+import { getSessionIdForChat } from '@/lib/mcp/get-session-id-for-chat';
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
@@ -135,12 +134,25 @@ export async function POST(request: Request) {
       }),
     };
 
-    // Don't initialize MCP yet
-    // This will be initialized when we need to get tools
-    // Once initialized, it will be reused for the rest of the session
-    let mcpClient: Awaited<
-      ReturnType<typeof experimental_createMCPClient>
-    > | null = null;
+    const serverUrl =
+      `${process.env.INTEGRATION_APP_MCP_SERVER_HOST}/mcp` as string;
+
+    const existingSessionIdForChat = await getSessionIdForChat(
+      id,
+      integrationAppCustomerAccessToken,
+    );
+
+    /**
+     * Reused existing MCP session or initialize a new one
+     */
+    const mcpSessionManager = new MCPSessionManager({
+      mcpBaseUrl: serverUrl,
+      userId: session.user.id,
+      chatId: id,
+      sessionId: existingSessionIdForChat,
+      token: integrationAppCustomerAccessToken,
+      mode: 'dynamic',
+    });
 
     return createDataStreamResponse({
       execute: async (dataStream) => {
@@ -157,36 +169,9 @@ export async function POST(request: Request) {
             experimental_generateMessageId: generateUUID,
             toolCallStreaming: true,
             getTools: async () => {
-              const exposedToolsKeys = await getChatExposedTools({
-                chatId: id,
+              const mcpTools = await mcpSessionManager.tools({
+                useCache: false,
               });
-
-              let mcpTools: Record<string, any> = {};
-
-              /**
-               * Don't list tools except there's exposed tools
-               */
-              if (exposedToolsKeys.length > 0) {
-                if (!mcpClient) {
-                  const { mcpClient: newMCPClient, transport } =
-                    await createMCPClient(integrationAppCustomerAccessToken);
-
-                  mcpClient = newMCPClient;
-
-                  console.log(
-                    '>>> MCP Client Initialized with session id: ',
-                    transport.sessionId,
-                  );
-                }
-
-                const { tools: toolsFromMCP } = await getToolsFromMCP({
-                  token: integrationAppCustomerAccessToken,
-                  keys: exposedToolsKeys,
-                  mcpClient,
-                });
-
-                mcpTools = toolsFromMCP;
-              }
 
               return {
                 ...mcpTools,
@@ -237,10 +222,6 @@ export async function POST(request: Request) {
                   console.error('Error on finish', e);
                 }
               }
-            },
-            cleanup: async () => {
-              console.log('>>> Closing MCP client session...');
-              await mcpClient?.close();
             },
           },
         );
