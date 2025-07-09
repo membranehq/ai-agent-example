@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { getUserById } from '@/lib/db/queries';
 import { indexMcpTools } from '@/lib/pinecone/index-user-mcp-tools';
+import { removeToolsForAppFromIndex } from '@/lib/pinecone/remove-tools-for-app-from-index';
 
 const schema = z.object({
   eventType: z.string(),
@@ -46,6 +47,19 @@ export async function POST(request: NextRequest) {
 
   if (shouldRefreshUserToolsIndex) {
     await indexMcpTools({
+      user: {
+        id: dbUser.id,
+        name: dbUser.name,
+      },
+    });
+  }
+
+  if (
+    eventType === 'connection.disconnected' ||
+    eventType === 'connection.deleted'
+  ) {
+    await removeToolsForAppFromIndex({
+      app: data.connection.integration.key,
       user: {
         id: dbUser.id,
         name: dbUser.name,
