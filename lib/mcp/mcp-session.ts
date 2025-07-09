@@ -18,6 +18,7 @@ interface MCPSessionConfig {
   sessionId?: string;
   token: string;
   mode: 'dynamic' | 'static';
+  apps?: string[];
 }
 
 export class MCPSessionManager {
@@ -29,6 +30,7 @@ export class MCPSessionManager {
   private chatId: string;
   private token: string;
   private mode: MCPSessionConfig['mode'];
+  private apps: string[] | undefined;
 
   constructor(config: MCPSessionConfig) {
     console.log(`Using ${config.mcpBaseUrl} as the MCP Server.`);
@@ -37,8 +39,9 @@ export class MCPSessionManager {
     this.chatId = config.chatId;
     this.token = config.token;
     this.mode = config.mode;
+    this.apps = config.apps;
     console.log(
-      `Creating MCP Session: ${this.serverUrl} chatId=${this.chatId} sessionId=${this.sessionId}`,
+      `Creating MCP Session: ${this.serverUrl} chatId=${this.chatId} sessionId=${this.sessionId} apps=${this.apps?.join(',') || 'none'}`,
     );
   }
 
@@ -53,23 +56,26 @@ export class MCPSessionManager {
     this.connectionPromise = new Promise((resolve, reject) => {
       (async () => {
         try {
-          const transport = new StreamableHTTPClientTransport(
-            new URL(`${this.serverUrl}?mode=${this.mode}`),
-            {
-              sessionId: this.sessionId,
-              requestInit: {
-                headers: {
-                  'x-chat-id': this.chatId,
-                  Authorization: `Bearer ${this.token}`,
-                },
-              } as RequestInit,
-            },
-          );
+          const url = new URL(this.serverUrl);
+          url.searchParams.set('mode', this.mode);
+          if (this.apps && this.apps.length > 0) {
+            url.searchParams.set('apps', this.apps.join(','));
+          }
+
+          const transport = new StreamableHTTPClientTransport(url, {
+            sessionId: this.sessionId,
+            requestInit: {
+              headers: {
+                'x-chat-id': this.chatId,
+                Authorization: `Bearer ${this.token}`,
+              },
+            } as RequestInit,
+          });
 
           this.client = new MCPClient(
             {
-              name: 'PD Connect',
-              version: '0.0.1',
+              name: 'Integration App MCP Client',
+              version: '1.0.0',
             },
             {
               capabilities: {},
