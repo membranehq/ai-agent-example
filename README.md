@@ -71,16 +71,16 @@ PINECONE_MEMBRANE_TOOLS="your-membrane-index"
 PINECONE_CLIENT_TOOLS="your-client-index"
 ```
 
-**Run database migrations**
-
-```bash
-pnpm db:push
-```
-
 **Index all actions in Pinecone**
 
 ```bash
 pnpm pinecone:index-actions
+```
+
+**Run database migrations**
+
+```bash
+pnpm db:push
 ```
 
 🚀 You’re ready! Now run the development server:
