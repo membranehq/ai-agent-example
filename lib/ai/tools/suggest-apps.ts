@@ -29,7 +29,7 @@ const searchClientToolsIndex = async (
 ): Promise<string[]> => {
   const searchResults = await searchIndex({
     query,
-    topK: 6,
+    topK: 10,
     index: 'client-tools',
     namespace: userId,
   });
@@ -41,6 +41,7 @@ const searchMembraneIndex = async (query: string): Promise<string[]> => {
   const searchResults = await searchIndex({
     query,
     index: 'membrane',
+    topK: 10,
   });
 
   return extractUniqueIntegrationKeys(searchResults);
@@ -59,12 +60,24 @@ const findRelevantApps = async (query: string, userId: string) => {
     clientToolsApps,
   );
 
+  console.log({
+    query,
+    clientToolsApps,
+    refinedClientToolsApps,
+  });
+
   if (refinedClientToolsApps.length >= 1) {
     return refinedClientToolsApps;
   }
 
   // Fallback to membrane apps if no client-tools results
-  return await refineAppsResultWithAI(query, membraneApps);
+  const refinedMembraneApps = await refineAppsResultWithAI(query, membraneApps);
+  console.log({
+    query,
+    membraneApps,
+    refinedMembraneApps,
+  });
+  return refinedMembraneApps;
 };
 
 export const suggestApps = ({ user }: { user: { id: string; name: string } }) =>
