@@ -1,6 +1,6 @@
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { myProvider } from '../providers';
+import { myProvider } from '../../providers';
 
 export async function refineAppsResultWithAI(
   query: string,
@@ -8,7 +8,7 @@ export async function refineAppsResultWithAI(
 ): Promise<string[]> {
   const prompt = `
   <goal>
-    - Based on the user's query, identify ONLY the most highly relevant apps that directly address the user's needs.
+    - Based on the user's query, identify ONLY the most highly relevant apps if there are any.
     - If there are multiple apps that are relevant, return them in order of relevance (most-relevant first).
     - Sometimes you'll receive an abstract query that doesn't specifically
       identify apps or services. In these cases, you should identify relevant apps
@@ -21,9 +21,8 @@ export async function refineAppsResultWithAI(
       - Prefer Slack over Microsoft Teams.
     
     - IMPORTANT: Only return apps that are HIGHLY relevant to the query. If an app
-      is only tangentially related or has low relevance, DO NOT include it.
-    - Be conservative in your selection - it's better to return fewer, highly relevant
-      apps than many apps with varying degrees of relevance.
+      is only tangentially related or has low relevance don't return it, we have a way of searching further
+    - Be conservative in your selection - it's better to return empty array, if highly relevant apps are not found than one app that is not relevant
     - Return only the app slugs that are most relevant to the query.
   <goal>
   <apps>

@@ -48,7 +48,6 @@ const PurePreviewMessage = ({
 
   const simplerName: Record<string, string> = {
     suggestApps: 'Suggest Apps',
-    suggestMoreApps: 'Suggest More Apps',
     getActions: 'Find Actions',
   };
 
@@ -124,19 +123,18 @@ const PurePreviewMessage = ({
           input={args}
           isStaticTool={isStaticTool}
         />
-        {['suggestApps', 'suggestMoreApps'].includes(toolName) &&
-          result.apps?.length > 1 && (
-            <div className="flex flex-row gap-2 mt-2">
-              {result.apps?.map((app: any) => (
-                <AppSelectionButton
-                  disabled={messagesAfterCount > 2}
-                  key={app}
-                  integrationKey={app}
-                  onClick={() => append({ role: 'user', content: app })}
-                />
-              ))}
-            </div>
-          )}
+        {toolName === 'suggestApps' && result.apps?.length > 1 && (
+          <div className="flex flex-row gap-2 mt-2">
+            {result.apps?.map((app: any) => (
+              <AppSelectionButton
+                disabled={messagesAfterCount > 2}
+                key={app}
+                integrationKey={app}
+                onClick={() => append({ role: 'user', content: app })}
+              />
+            ))}
+          </div>
+        )}
       </>
     );
   };

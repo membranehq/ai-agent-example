@@ -1,34 +1,96 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import { searchIndexAndSuggestApps } from './utils/search-Index-and-suggest-apps';
+import { searchIndex } from '@/lib/pinecone/search-index';
+import { refineAppsResultWithAI } from './utils/refine-apps-result-with-ai';
 
-/**
- * Search client tools index for relevant apps related to the user query
- */
+const formatAnswer = (query: string, apps: string[]): string => {
+  if (apps.length === 0) {
+    return "I couldn't find any relevant apps for your query.";
+  }
+
+  if (apps.length === 1) {
+    return `Based on your prompt, I found that ${apps[0]} is the most relevant app for your needs.`;
+  }
+
+  return `Based on your prompt, "${query}", I found these relevant apps: ${apps.join(', ')}. Please select which one you'd like to use.`;
+};
+
+const extractUniqueIntegrationKeys = (searchResults: any[]): string[] => {
+  return Array.from(
+    new Set(
+      searchResults.map((result) => result.integrationKey).filter(Boolean),
+    ),
+  );
+};
+
+const searchClientToolsIndex = async (
+  query: string,
+  userId: string,
+): Promise<string[]> => {
+  const searchResults = await searchIndex({
+    query,
+    topK: 6,
+    index: 'client-tools',
+    namespace: userId,
+  });
+
+  return extractUniqueIntegrationKeys(searchResults);
+};
+
+const searchMembraneIndex = async (query: string): Promise<string[]> => {
+  const searchResults = await searchIndex({
+    query,
+    index: 'membrane',
+  });
+
+  return extractUniqueIntegrationKeys(searchResults);
+};
+
+const findRelevantApps = async (query: string, userId: string) => {
+  // Search both indexes concurrently
+  const [clientToolsApps, membraneApps] = await Promise.all([
+    searchClientToolsIndex(query, userId),
+    searchMembraneIndex(query),
+  ]);
+
+  // Try client-tools index first
+  const refinedClientToolsApps = await refineAppsResultWithAI(
+    query,
+    clientToolsApps,
+  );
+
+  if (refinedClientToolsApps.length >= 1) {
+    return refinedClientToolsApps;
+  }
+
+  // Fallback to membrane apps if no client-tools results
+  return await refineAppsResultWithAI(query, membraneApps);
+};
+
 export const suggestApps = ({ user }: { user: { id: string; name: string } }) =>
   tool({
-    description: `See if you can find relevant apps for a user query if they are asking to perform an operation e.g:
-    - What events do I have for today?
-    - Can you create a page on notion?
-    `,
+    description: `See if you can find relevant apps for a user query if they are asking to perform an operation e.g:  What events do I have for today? or Can you create a page on notion?`,
     parameters: z.object({
       query: z
         .string()
-        .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query
-        E.g for "Can you send an email" the query should be "send an email"
-        E.g for create a page on notion the query should be "notion: create a page"
-        E.g for "Can you send an email to jude@gmail" the query should be "send an email"
-        E.g for "What events do I have on google calendar" the query should be "google-calendar: get events"
-        E.g for "Where are my contacts" the query should be "get contacts"
+        .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query.
+
+        <examples>
+          "Can you send an email" = "send email"
+          "create a page on notion" = "notion: create page"
+          "Can you send an email to jude@gmail" = "send email"
+          "What events do I have on google calendar" = "google-calendar: get events"
+          "Where are my contacts" = "get contacts"
+        </examples>
       `),
     }),
     execute: async ({ query }) => {
-      const result = await searchIndexAndSuggestApps({
-        query,
-        index: 'client-tools',
-        namespace: user.id,
-      });
+      const apps = await findRelevantApps(query, user.id);
 
-      return result;
+      return {
+        query,
+        apps,
+        answer: formatAnswer(query, apps),
+      };
     },
   });

@@ -1,6 +1,5 @@
 export const StaticTools = {
   suggestApps: 'suggestApps',
-  suggestMoreApps: 'suggestMoreApps',
-  renderForm: 'renderForm',
   getActions: 'getActions',
+  renderForm: 'renderForm',
 } as const;

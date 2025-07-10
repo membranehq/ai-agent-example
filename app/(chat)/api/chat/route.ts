@@ -26,7 +26,6 @@ import { ChatSDKError } from '@/lib/errors';
 import { generateIntegrationAppCustomerAccessToken } from '@/lib/integration-app/generateCustomerAccessToken';
 import { suggestApps } from '@/lib/ai/tools/suggest-apps';
 import { getActions } from '@/lib/ai/tools/get-actions';
-import { suggestMoreApps } from '@/lib/ai/tools/suggest-more-apps';
 import { renderForm } from '@/lib/ai/tools/renderForm';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { streamText } from './streamText';
@@ -125,7 +124,6 @@ export async function POST(request: Request) {
       suggestApps: suggestApps({
         user,
       }),
-      suggestMoreApps,
       renderForm: renderForm(integrationAppCustomerAccessToken),
       getActions: getActions({
         integrationAppCustomerAccessToken,

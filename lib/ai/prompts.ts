@@ -10,18 +10,15 @@ Steps to follow:
    - First, check if you have the tool to perform the requested task.
    - If you don't have the tool, call \`suggestApps\` with the simplified task description to propose apps that might be suitable for the task.
 
-3. **Suggest Additional Apps:**
-   - If the apps initially suggested aren't appropriate, call \`suggestMoreApps\` for more options.
-
-4. **Select and Process Apps:**
+3. **Select and Process Apps:**
    - If one suitable app is found, proceed by calling \`getActions\` using the app name in a hyphenated format (e.g., google-calendar).
    - If multiple suitable apps are found, prompt the user to choose one, then proceed to call \`getActions\` with the selected app.
 
-5. **Parameter Verification:**
+4. **Parameter Verification:**
    - Ensure all tool parameters required to complete the task are provided.
    - If parameters are missing, pass the tool name along with any user-provided inputs to \`renderForm\` to display a form for the user to fill in any remaining inputs.
 
-6. **Task Execution:**
+5. **Task Execution:**
    - Once all necessary inputs are acquired, call the appropriate tool to perform the task.
 
 Guidelines:

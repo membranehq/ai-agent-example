@@ -18,18 +18,20 @@ export const getActions = ({
 }: GetActionsProps) =>
   tool({
     description:
-      'Get related actions for the selected app. Run again if it returns tool count as 0',
+      'Get related actions for the selected app.',
     parameters: z.object({
       app: z.string().describe(`The key of the app to get actions for`),
       query: z
         .string()
-        .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query
-        E.g for "Can you send an email" the query should be "send an email"
-        E.g for create a page on notion the query should be "notion: create a page"
-        E.g for "Can you send an email to jude@gmail" the query should be "send an email"
-        E.g for "What events do I have on google calendar" the query should be "google-calendar: get events"
-        E.g for "What events do I have on my calendar" the query should be "get calendar events" notice that and the app name is included in the query, if the user didn't provide the app name, you shouldn't include it in the query
-        E.g for "Where are my contacts" the query should be "get contacts"
+        .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query.
+
+        <examples>
+          "Can you send an email" = "send email"
+          "create a page on notion" = "notion: create page"
+          "Can you send an email to jude@gmail" = "send email"
+          "What events do I have on google calendar" = "google-calendar: get events"
+          "Where are my contacts" = "get contacts"
+        </examples>
       `),
     }),
     execute: async ({ app, query }) => {
