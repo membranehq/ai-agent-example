@@ -1,13 +1,11 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { IntegrationAppClient } from '@integration-app/sdk';
-import { updateChatExposedTools } from '@/lib/db/queries';
 import { searchIndex } from '@/lib/pinecone/search-index';
 import { indexMcpTools } from '@/lib/pinecone/index-user-mcp-tools';
 import pRetry from 'p-retry';
 
 interface GetActionsProps {
-  chatId: string;
   integrationAppCustomerAccessToken: string;
   user: {
     id: string;
@@ -15,7 +13,6 @@ interface GetActionsProps {
   };
 }
 export const getActions = ({
-  chatId,
   integrationAppCustomerAccessToken,
   user,
 }: GetActionsProps) =>
@@ -101,14 +98,6 @@ export const getActions = ({
           await indexMcpTools({ user, app });
           return await searchWithRetry();
         });
-
-        // Update chat with found tools
-        if (searchResults.length > 0) {
-          await updateChatExposedTools({
-            chatId,
-            toolsList: searchResults.map((tool) => tool.toolKey),
-          });
-        }
 
         return {
           success: true,

@@ -22,6 +22,13 @@
       "when": 1749720121083,
       "tag": "0002_left_bug",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1752143793370,
+      "tag": "0003_first_doctor_spectrum",
+      "breakpoints": true
     }
   ]
 }

@@ -128,7 +128,6 @@ export async function POST(request: Request) {
       suggestMoreApps,
       renderForm: renderForm(integrationAppCustomerAccessToken),
       getActions: getActions({
-        chatId: id,
         integrationAppCustomerAccessToken,
         user,
       }),
