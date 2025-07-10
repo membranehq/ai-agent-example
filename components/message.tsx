@@ -19,6 +19,7 @@ import { Loader } from 'lucide-react';
 import { ToolResultDisplay } from './tool-result-display';
 import { StaticTools } from '@/lib/ai/constants';
 import { Skeleton } from './ui/skeleton';
+import { TypingAnimation } from './typing-animation';
 
 const PurePreviewMessage = ({
   chatId,
@@ -214,7 +215,7 @@ const PurePreviewMessage = ({
                   return (
                     <div key={toolCallId} className="flex flex-row gap-2">
                       <Loader size={20} className="animate-spin" />
-                      Thinking...
+                      <TypingAnimation text="Working on it" />
                     </div>
                   );
                 }
@@ -302,7 +303,7 @@ export const ThinkingMessage = () => {
 
         <div className="flex flex-col gap-2 w-full">
           <div className="flex flex-col gap-4 text-muted-foreground">
-            Hmm...
+            <TypingAnimation text="Working on it" />
           </div>
         </div>
       </div>
