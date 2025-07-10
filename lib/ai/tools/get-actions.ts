@@ -1,4 +1,3 @@
-import { tool } from 'ai';
 import { z } from 'zod';
 import { IntegrationAppClient } from '@integration-app/sdk';
 import { searchIndex } from '@/lib/pinecone/search-index';
@@ -12,29 +11,34 @@ interface GetActionsProps {
     name: string;
   };
 }
+
+const parameters = z.object({
+  app: z.string().describe(`The key of the app to get actions for`),
+  query: z
+    .string()
+    .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query.
+
+    <examples>
+      "Can you send an email" = "send email"
+      "create a page on notion" = "notion: create page"
+      "Can you send an email to jude@gmail" = "send email"
+      "What events do I have on google calendar" = "google-calendar: get events"
+      "Where are my contacts" = "get contacts"
+    </examples>
+  `),
+});
+
 export const getActions = ({
   integrationAppCustomerAccessToken,
   user,
-}: GetActionsProps) =>
-  tool({
-    description:
-      'Get related actions for the selected app.',
-    parameters: z.object({
-      app: z.string().describe(`The key of the app to get actions for`),
-      query: z
-        .string()
-        .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query.
-
-        <examples>
-          "Can you send an email" = "send email"
-          "create a page on notion" = "notion: create page"
-          "Can you send an email to jude@gmail" = "send email"
-          "What events do I have on google calendar" = "google-calendar: get events"
-          "Where are my contacts" = "get contacts"
-        </examples>
-      `),
-    }),
-    execute: async ({ app, query }) => {
+}: GetActionsProps) => {
+  return {
+    description: 'Get related actions for the selected app.',
+    parameters,
+    execute: async ({
+      app,
+      query,
+    }: z.infer<typeof parameters>) => {
       try {
         const integrationAppClient = new IntegrationAppClient({
           token: integrationAppCustomerAccessToken,
@@ -119,4 +123,5 @@ export const getActions = ({
         };
       }
     },
-  });
+  };
+};

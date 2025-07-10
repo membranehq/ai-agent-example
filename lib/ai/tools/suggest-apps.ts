@@ -1,4 +1,3 @@
-import { tool } from 'ai';
 import { z } from 'zod';
 import { searchIndex } from '@/lib/pinecone/search-index';
 import { refineAppsResultWithAI } from './utils/refine-apps-result-with-ai';
@@ -80,24 +79,28 @@ const findRelevantApps = async (query: string, userId: string) => {
   return refinedMembraneApps;
 };
 
-export const suggestApps = ({ user }: { user: { id: string; name: string } }) =>
-  tool({
-    description: `See if you can find relevant apps for a user query if they are asking to perform an operation e.g:  What events do I have for today? or Can you create a page on notion?`,
-    parameters: z.object({
-      query: z
-        .string()
-        .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query.
+const parameters = z.object({
+  query: z
+    .string()
+    .describe(`Summary of action to be taken by the user with app name included if user provided it, the details of the action should not be included in the query.
 
-        <examples>
-          "Can you send an email" = "send email"
-          "create a page on notion" = "notion: create page"
-          "Can you send an email to jude@gmail" = "send email"
-          "What events do I have on google calendar" = "google-calendar: get events"
-          "Where are my contacts" = "get contacts"
-        </examples>
-      `),
-    }),
-    execute: async ({ query }) => {
+    <examples>
+      "Can you send an email" = "send email"
+      "create a page on notion" = "notion: create page"
+      "Can you send an email to jude@gmail" = "send email"
+      "What events do I have on google calendar" = "google-calendar: get events"
+      "Where are my contacts" = "get contacts"
+    </examples>
+  `),
+});
+
+export const suggestApps = ({
+  user,
+}: { user: { id: string; name: string } }) => {
+  return {
+    description: `See if you can find relevant apps for a user query if they are asking to perform an operation e.g:  What events do I have for today? or Can you create a page on notion?`,
+    parameters,
+    execute: async ({ query }: z.infer<typeof parameters>) => {
       const apps = await findRelevantApps(query, user.id);
 
       return {
@@ -106,4 +109,5 @@ export const suggestApps = ({ user }: { user: { id: string; name: string } }) =>
         answer: formatAnswer(query, apps),
       };
     },
-  });
+  };
+};

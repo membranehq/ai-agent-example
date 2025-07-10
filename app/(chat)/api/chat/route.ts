@@ -120,7 +120,7 @@ export async function POST(request: Request) {
       name: session.user.name ?? '',
     };
 
-    const defaultTools: Record<keyof typeof StaticTools, Tool> = {
+    const staticTools: Record<keyof typeof StaticTools, Tool> = {
       suggestApps: suggestApps({
         user,
       }),
@@ -172,7 +172,7 @@ export async function POST(request: Request) {
 
               return {
                 ...mcpTools,
-                ...defaultTools,
+                ...staticTools,
               };
             },
             onError: (error) => {

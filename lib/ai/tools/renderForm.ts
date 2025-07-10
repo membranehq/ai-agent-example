@@ -1,26 +1,29 @@
-import { tool } from 'ai';
 import { z } from 'zod';
 import { IntegrationAppClient } from '@integration-app/sdk';
 
-export const renderForm = (token: string) =>
-  tool({
+const parameters = z.object({
+  toolName: z.string().describe('The name of the tool to collect input for'),
+  inputsAlreadyProvided: z
+    .record(z.string())
+    .describe('The inputs already provided for the tool make'),
+  formTitle: z
+    .string()
+    .describe(
+      'The title of the form, that describes what the user should fill in',
+    ),
+});
+
+export const renderForm = (token: string) => {
+  return {
     description: `Render a form to collect input for a tool`,
 
-    parameters: z.object({
-      toolName: z
-        .string()
-        .describe('The name of the tool to collect input for'),
-      inputsAlreadyProvided: z
-        .record(z.string())
-        .describe('The inputs already provided for the tool make'),
-      formTitle: z
-        .string()
-        .describe(
-          'The title of the form, that describes what the user should fill in',
-        ),
-    }),
+    parameters,
 
-    execute: async ({ toolName, inputsAlreadyProvided, formTitle }) => {
+    execute: async ({
+      toolName,
+      inputsAlreadyProvided,
+      formTitle,
+    }: z.infer<typeof parameters>) => {
       const [integrationKey, ...actionKeyArray] = toolName.split('_');
 
       const membrane = new IntegrationAppClient({
@@ -43,4 +46,5 @@ export const renderForm = (token: string) =>
         formTitle,
       };
     },
-  });
+  };
+};
