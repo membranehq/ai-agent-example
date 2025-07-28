@@ -26,7 +26,7 @@ export const Greeting = () => {
           rel="noopener noreferrer"
           className="text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-200 transition-colors duration-200 underline underline-offset-4 font-bold"
         >
-          Integration App
+          Membrane
         </a>{' '}
         is a powerful platform for building and running integrations. This Demo
         leverages the{' '}
@@ -36,7 +36,7 @@ export const Greeting = () => {
           rel="noopener noreferrer"
           className="text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-200 transition-colors duration-200 underline underline-offset-4 font-bold"
         >
-          Integration App MCP server
+          Membrane MCP server
         </a>{' '}
         to provide seamless integration capabilities to AI agents, enabling them
         to interact over{' '}

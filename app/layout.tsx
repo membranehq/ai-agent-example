@@ -8,8 +8,8 @@ import { SessionProvider } from 'next-auth/react';
 
 export const metadata: Metadata = {
   metadataBase: new URL(`https://ai-agent-example-two.vercel.app/`),
-  title: 'Integration App | AI Agent Example',
-  description: 'Access data from your apps with AI using Integration App',
+  title: 'Membrane | AI Agent Example',
+  description: 'Access data from your apps with AI using Membrane',
 };
 
 export const viewport = {

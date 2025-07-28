@@ -1,4 +1,4 @@
-## Integration App AI Agent Example
+## Membrane AI Agent Example
 
 This is an example of an AI agent that uses the Integration App MCP server. Rather than exposing all available tools from the MCP server to the language model, it dynamically selects and provides only a small, relevant subset based on the user’s query. See [how it works](#how-it-works) for more details.
 

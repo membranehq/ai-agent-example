@@ -1,5 +1,8 @@
 import { z } from 'zod';
 import { IntegrationAppClient } from '@integration-app/sdk';
+import { generateObject } from 'ai';
+import { myProvider } from '../providers';
+import { JSONSchemaToZod } from '@dmitryrechkin/json-schema-to-zod';
 
 const parameters = z.object({
   toolName: z.string().describe('The name of the tool to collect input for'),
@@ -13,12 +16,42 @@ const parameters = z.object({
     ),
 });
 
+const prefillSchema = async (jsonSchema: any, input: Record<string, any>) => {
+  const zodSchema = jsonSchema
+    ? JSONSchemaToZod.convert(jsonSchema)
+    : z.object({});
+
+  const systemPrompt = `
+   You are a JSON schema filler, You'll be provided a JSON schema and some input, fill input into the JSON schema as default values and return the new JSON schema
+  `;
+
+  const prompt = `
+    Based on the schema and the input, add the input as default values to the schema and return the schema with the default values
+    
+    <schema>
+      ${JSON.stringify(jsonSchema)}
+    </schema>
+
+    <input>
+      ${JSON.stringify(input)}
+    </input>
+    `;
+
+  const { object } = await generateObject({
+    model: myProvider.languageModel('refine-apps-model'),
+    temperature: 0,
+    system: systemPrompt,
+    prompt,
+    schema: zodSchema,
+  });
+
+  return object;
+};
+
 export const renderForm = (token: string) => {
   return {
     description: `Render a form to collect input for a tool`,
-
     parameters,
-
     execute: async ({
       toolName,
       inputsAlreadyProvided,
@@ -35,13 +68,16 @@ export const renderForm = (token: string) => {
       const action = await membrane
         .action({
           integrationKey,
-          key: actionKey, // TODO: The key here is not reliable since MCP may have truncated the tool name if it's too long
+          key: actionKey,
         })
         .get();
 
       return {
         message: `Now, use this information to render a form to collect input for the tool`,
-        toolInputSchema: action.inputSchema,
+        toolInputSchema: await prefillSchema(
+          action.inputSchema,
+          inputsAlreadyProvided,
+        ),
         inputsAlreadyProvided,
         formTitle,
       };

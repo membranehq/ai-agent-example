@@ -74,7 +74,7 @@ export class MCPSessionManager {
 
           this.client = new MCPClient(
             {
-              name: 'Integration App MCP Client',
+              name: 'Membrane MCP Client',
               version: '1.0.0',
             },
             {

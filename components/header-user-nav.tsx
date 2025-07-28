@@ -88,7 +88,7 @@ export function HeaderUserNav({ user }: { user: User }) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Integration App Authentication documentation
+              Membrane Authentication documentation
             </a>
             .
           </p>
