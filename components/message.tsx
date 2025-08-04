@@ -79,24 +79,24 @@ const PurePreviewMessage = ({
       );
     }
 
-    // if (toolName === 'renderForm') {
-    //   return (
-    //     <div className="bg-muted p-4 rounded-lg text-black">
-    //       <JsonSchemaForm
-    //         isCollapsed={messagesAfterCount > 2}
-    //         formTitle={result.formTitle}
-    //         schema={result.toolInputSchema}
-    //         defaultValues={result.inputsAlreadyProvided}
-    //         onSubmit={(data) => {
-    //           append({
-    //             role: 'user',
-    //             content: data,
-    //           });
-    //         }}
-    //       />
-    //     </div>
-    //   );
-    // }
+    if (toolName === 'renderForm') {
+      return (
+        <div className="bg-muted p-4 rounded-lg text-black">
+          <JsonSchemaForm
+            isCollapsed={messagesAfterCount > 2}
+            formTitle={result.formTitle}
+            schema={result.toolInputSchema}
+            defaultValues={result.inputsAlreadyProvided}
+            onSubmit={(data) => {
+              append({
+                role: 'user',
+                content: data,
+              });
+            }}
+          />
+        </div>
+      );
+    }
 
     const constructCleanMCPToolName = (toolName: string) => {
       const [firstPart = '', secondPart = ''] = toolName.split('_');

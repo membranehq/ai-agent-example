@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { IntegrationAppClient } from '@integration-app/sdk';
-import { generateObject } from 'ai';
-import { myProvider } from '../providers';
-import { JSONSchemaToZod } from '@dmitryrechkin/json-schema-to-zod';
+// import { generateObject } from 'ai';
+// import { myProvider } from '../providers';
+// import { JSONSchemaToZod } from '@dmitryrechkin/json-schema-to-zod';
 
 const parameters = z.object({
   toolName: z.string().describe('The name of the tool to collect input for'),
@@ -16,37 +16,37 @@ const parameters = z.object({
     ),
 });
 
-const prefillSchema = async (jsonSchema: any, input: Record<string, any>) => {
-  const zodSchema = jsonSchema
-    ? JSONSchemaToZod.convert(jsonSchema)
-    : z.object({});
+// const prefillSchema = async (jsonSchema: any, input: Record<string, any>) => {
+//   const zodSchema = jsonSchema
+//     ? JSONSchemaToZod.convert(jsonSchema)
+//     : z.object({});
 
-  const systemPrompt = `
-   You are a JSON schema filler, You'll be provided a JSON schema and some input, fill input into the JSON schema as default values and return the new JSON schema
-  `;
+//   const systemPrompt = `
+//    You are a JSON schema filler, You'll be provided a JSON schema and some input, fill input into the JSON schema as default values and return the new JSON schema
+//   `;
 
-  const prompt = `
-    Based on the schema and the input, add the input as default values to the schema and return the schema with the default values
-    
-    <schema>
-      ${JSON.stringify(jsonSchema)}
-    </schema>
+//   const prompt = `
+//     Based on the schema and the input, add the input as default values to the schema and return the schema with the default values
 
-    <input>
-      ${JSON.stringify(input)}
-    </input>
-    `;
+//     <schema>
+//       ${JSON.stringify(jsonSchema)}
+//     </schema>
 
-  const { object } = await generateObject({
-    model: myProvider.languageModel('refine-apps-model'),
-    temperature: 0,
-    system: systemPrompt,
-    prompt,
-    schema: zodSchema,
-  });
+//     <input>
+//       ${JSON.stringify(input)}
+//     </input>
+//     `;
 
-  return object;
-};
+//   const { object } = await generateObject({
+//     model: myProvider.languageModel('refine-apps-model'),
+//     temperature: 0,
+//     system: systemPrompt,
+//     prompt,
+//     schema: zodSchema,
+//   });
+
+//   return object;
+// };
 
 export const renderForm = (token: string) => {
   return {
@@ -57,6 +57,8 @@ export const renderForm = (token: string) => {
       inputsAlreadyProvided,
       formTitle,
     }: z.infer<typeof parameters>) => {
+      // toolName is in the format of integrationKey_actionKey_actionKey_...
+      // we need to get the integrationKey and the actionKey
       const [integrationKey, ...actionKeyArray] = toolName.split('_');
 
       const membrane = new IntegrationAppClient({
@@ -74,10 +76,7 @@ export const renderForm = (token: string) => {
 
       return {
         message: `Now, use this information to render a form to collect input for the tool`,
-        toolInputSchema: await prefillSchema(
-          action.inputSchema,
-          inputsAlreadyProvided,
-        ),
+        toolInputSchema: action.inputSchema,
         inputsAlreadyProvided,
         formTitle,
       };
