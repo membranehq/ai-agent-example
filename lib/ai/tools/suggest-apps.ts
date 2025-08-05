@@ -101,13 +101,27 @@ export const suggestApps = ({
     description: `See if you can find relevant apps for a user query if they are asking to perform an operation e.g:  What events do I have for today? or Can you create a page on notion?`,
     parameters,
     execute: async ({ query }: z.infer<typeof parameters>) => {
-      const apps = await findRelevantApps(query, user.id);
+      try {
+        const apps = await findRelevantApps(query, user.id);
 
-      return {
-        query,
-        apps,
-        answer: formatAnswer(query, apps),
-      };
+        return {
+          success: true,
+          data: {
+            query,
+            apps,
+            answer: formatAnswer(query, apps),
+          },
+        };
+      } catch (error) {
+        console.error(error);
+        return {
+          success: false,
+          error: {
+            type: 'internal_error',
+            message: 'Failed to suggest apps',
+          },
+        };
+      }
     },
   };
 };

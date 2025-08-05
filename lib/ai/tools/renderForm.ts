@@ -57,29 +57,43 @@ export const renderForm = (token: string) => {
       inputsAlreadyProvided,
       formTitle,
     }: z.infer<typeof parameters>) => {
-      // toolName is in the format of integrationKey_actionKey_actionKey_...
-      // we need to get the integrationKey and the actionKey
-      const [integrationKey, ...actionKeyArray] = toolName.split('_');
+      try {
+        // toolName is in the format of integrationKey_actionKey_actionKey_...
+        // we need to get the integrationKey and the actionKey
+        const [integrationKey, ...actionKeyArray] = toolName.split('_');
 
-      const membrane = new IntegrationAppClient({
-        token,
-      });
+        const membrane = new IntegrationAppClient({
+          token,
+        });
 
-      const actionKey = actionKeyArray.join('_');
+        const actionKey = actionKeyArray.join('_');
 
-      const action = await membrane
-        .action({
-          integrationKey,
-          key: actionKey,
-        })
-        .get();
+        const action = await membrane
+          .action({
+            integrationKey,
+            key: actionKey,
+          })
+          .get();
 
-      return {
-        message: `Now, use this information to render a form to collect input for the tool`,
-        toolInputSchema: action.inputSchema,
-        inputsAlreadyProvided,
-        formTitle,
-      };
+        return {
+          success: true,
+          data: {
+            message: `Now, use this information to render a form to collect input for the tool`,
+            toolInputSchema: action.inputSchema,
+            inputsAlreadyProvided,
+            formTitle,
+          },
+        };
+      } catch (error) {
+        console.error(error);
+        return {
+          success: false,
+          error: {
+            type: 'internal_error',
+            message: 'Failed to render form',
+          },
+        };
+      }
     },
   };
 };
