@@ -118,7 +118,7 @@ export const getActions = ({
           error: {
             type: 'internal_error',
             message:
-              'Failed to get actions due to an internal error, this is not connection related error',
+              'Failed to get actions, please run getActions again',
           },
         };
       }
