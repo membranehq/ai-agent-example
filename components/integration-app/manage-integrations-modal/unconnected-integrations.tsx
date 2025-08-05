@@ -101,7 +101,7 @@ export function UnconnectedIntegrations() {
     integrations: searchResults,
     loading: searchIsLoading,
     error: searchError,
-  } = useIntegrations({ search: searchQuery });
+  } = useIntegrations({ search: searchQuery, limit: 200 });
 
   // Get connected integrations from connections
   const connectedIntegrations = connections
