@@ -80,13 +80,23 @@ const PurePreviewMessage = ({
     }
 
     if (toolName === 'renderForm') {
+      if (result.success === false) {
+        return (
+          <div className="bg-destructive/10 p-4 rounded-lg text-destructive">
+            <p>
+              Failed to render form: {result.error?.message || 'Unknown error'}
+            </p>
+          </div>
+        );
+      }
+
       return (
         <div className="bg-muted p-4 rounded-lg text-black">
           <JsonSchemaForm
             isCollapsed={messagesAfterCount > 2}
-            formTitle={result.formTitle}
-            schema={result.toolInputSchema}
-            defaultValues={result.inputsAlreadyProvided}
+            formTitle={result.data.formTitle}
+            schema={result.data.toolInputSchema}
+            defaultValues={result.data.inputsAlreadyProvided}
             onSubmit={(data) => {
               append({
                 role: 'user',
@@ -124,18 +134,20 @@ const PurePreviewMessage = ({
           input={args}
           isStaticTool={isStaticTool}
         />
-        {toolName === 'suggestApps' && result.apps?.length > 1 && (
-          <div className="flex flex-row gap-2 mt-2">
-            {result.apps?.map((app: any) => (
-              <AppSelectionButton
-                disabled={messagesAfterCount > 2}
-                key={app}
-                integrationKey={app}
-                onClick={() => append({ role: 'user', content: app })}
-              />
-            ))}
-          </div>
-        )}
+        {toolName === 'suggestApps' &&
+          result.success &&
+          result.data.apps?.length > 1 && (
+            <div className="flex flex-row gap-2 mt-2">
+              {result.data.apps?.map((app: any) => (
+                <AppSelectionButton
+                  disabled={messagesAfterCount > 2}
+                  key={app}
+                  integrationKey={app}
+                  onClick={() => append({ role: 'user', content: app })}
+                />
+              ))}
+            </div>
+          )}
       </>
     );
   };
