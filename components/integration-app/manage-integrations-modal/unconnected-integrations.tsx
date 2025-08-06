@@ -135,9 +135,14 @@ export function UnconnectedIntegrations() {
   return (
     <div>
       <div className="flex items-center justify-between mb-3 px-1">
-        <h3 className="text-sm font-semibold text-muted-foreground">
-          Connect Apps
-        </h3>
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground">
+            Connect Apps
+          </h3>
+          <p className="text-xs text-muted-foreground/60 mt-0.5">
+            {unconnectedIntegrations.length} apps supported
+          </p>
+        </div>
         <div className="relative w-64">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
