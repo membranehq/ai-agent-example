@@ -187,9 +187,9 @@ export function ToolsOverlay({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
                 {toolsList.map((tool, index) => (
-                  <motion.button
+                  <motion.div
                     key={tool.id}
-                    className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer text-left w-full"
+                    className="p-4 border rounded-lg transition-colors text-left w-full"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
@@ -197,14 +197,6 @@ export function ToolsOverlay({
                       duration: 0.2,
                       ease: 'easeOut',
                     }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      // Handle tool selection here
-                      console.log('Selected tool:', tool.name);
-                      onClose();
-                    }}
-                    aria-label={`Select ${tool.name} tool`}
                   >
                     <div className="flex items-start gap-3">
                       <div className="p-2 bg-primary/10 rounded-lg">
@@ -219,7 +211,7 @@ export function ToolsOverlay({
                         </p>
                       </div>
                     </div>
-                  </motion.button>
+                  </motion.div>
                 ))}
               </div>
             )}
