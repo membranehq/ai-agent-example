@@ -2,8 +2,7 @@
 import Image from 'next/image';
 import type { User } from 'next-auth';
 import { useSession } from 'next-auth/react';
-import { useTheme } from 'next-themes';
-import { Moon, Sun, User as UserIcon } from 'lucide-react';
+import { User as UserIcon } from 'lucide-react';
 
 import {
   DropdownMenu,
@@ -14,7 +13,6 @@ import { Button } from '@/components/ui/button';
 
 export function HeaderUserNav({ user }: { user: User }) {
   const { status } = useSession();
-  const { setTheme, theme } = useTheme();
 
   return (
     <DropdownMenu>
@@ -62,20 +60,6 @@ export function HeaderUserNav({ user }: { user: User }) {
             <h4 className="font-semibold text-base">Guest</h4>
             <p className="text-xs text-muted-foreground">{user.email}</p>
           </div>
-        </div>
-        <div className="absolute top-3 right-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            {theme === 'light' ? (
-              <Moon className="size-4" />
-            ) : (
-              <Sun className="size-4" />
-            )}
-          </Button>
         </div>
 
         <div className="px-3 py-2 mt-2 border-t">
