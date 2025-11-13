@@ -10,6 +10,19 @@ export const metadata: Metadata = {
   metadataBase: new URL(`https://ai.examples.integration.app`),
   title: 'Membrane | AI Agent Example',
   description: 'Access data from your apps with AI using Membrane',
+  icons: {
+    icon: [
+      {
+        url: '/icon.png',
+        media: '(prefers-color-scheme: light)',
+      },
+      {
+        url: '/icon-dark.png',
+        media: '(prefers-color-scheme: dark)',
+      },
+    ],
+    apple: '/apple-icon.png',
+  },
 };
 
 export const viewport = {
