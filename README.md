@@ -1,6 +1,6 @@
 ## Membrane AI Agent Example
 
-This is an example of an AI agent that uses the Integration App MCP server. Rather than exposing all available tools from the MCP server to the language model, it dynamically selects and provides only a small, relevant subset based on the user’s query. See [how it works](#how-it-works) for more details.
+This is an example of an AI agent that uses the Membrabe MCP server. Rather than exposing all available tools from the MCP server to the language model, it dynamically selects and provides only a small, relevant subset based on the user’s query. See [how it works](#how-it-works) for more details.
 
 **Why is this useful?**
 
@@ -10,8 +10,8 @@ This is an example of an AI agent that uses the Integration App MCP server. Rath
 
 ### Prerequisites 🛠️
 
-- **Integration App** – the central platform for building and running your app integrations.  
-  [integration.app](https://integration-app.com/)
+- **Membrane** – the central platform for building and running your app integrations.  
+  [getmembrane.com](https://getmembrane.com/)
 
 - **Pinecone** – a managed vector database used to store and query embeddings (e.g., for tool/data lookup).  
   [pinecone.io](https://www.pinecone.io/)
@@ -26,7 +26,7 @@ This is an example of an AI agent that uses the Integration App MCP server. Rath
 **Clone the repository**
 
 ```bash
-git clone https://github.com/integration-app/ai-agent.git
+git clone https://github.com/membrane/ai-agent-example.git
 ```
 
 **Install dependencies**
