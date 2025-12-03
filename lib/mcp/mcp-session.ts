@@ -256,7 +256,9 @@ export class MCPSessionManager {
       }
 
       console.log(`Tool '${name}' executed successfully`);
-      return result;
+      
+      // Truncate large results to prevent token overflow
+      return this.truncateLargeResult(result, name);
     } catch (error) {
       // Clear timeout if it was set
       if (timeoutId) {
@@ -270,6 +272,144 @@ export class MCPSessionManager {
       console.error(`Tool '${name}' execution failed:`, error);
       throw new Error(`Tool '${name}' execution failed: ${String(error)}`);
     }
+  }
+
+  /**
+   * Truncate large tool results to prevent token overflow
+   */
+  private truncateLargeResult(result: any, toolName: string): any {
+    const resultString = JSON.stringify(result);
+    const resultSizeKB = resultString.length / 1024;
+    const estimatedTokens = Math.ceil(resultString.length / 4);
+    
+    // Limit: 50KB (~12,500 tokens) - safe for context window
+    const MAX_SIZE_KB = 50;
+    const MAX_SIZE_BYTES = MAX_SIZE_KB * 1024;
+    
+    if (resultString.length <= MAX_SIZE_BYTES) {
+      // Result is small enough, return as-is
+      return result;
+    }
+    
+    // Result is too large, truncate it
+    console.warn(`\n⚠️  LARGE TOOL RESULT DETECTED!`);
+    console.warn(`Tool: ${toolName}`);
+    console.warn(`Size: ${resultSizeKB.toFixed(2)} KB (~${estimatedTokens.toLocaleString()} tokens)`);
+    console.warn(`Limit: ${MAX_SIZE_KB} KB - Truncating to prevent context overflow...\n`);
+    
+    // Handle MCP-style results with content array
+    if (result && typeof result === 'object' && Array.isArray(result.content)) {
+      const truncatedContent = result.content.map((item: any) => {
+        if (item?.text && typeof item.text === 'string') {
+          try {
+            const parsed = JSON.parse(item.text);
+            
+            // Handle results with 'records' array (Gmail, Notion, etc.)
+            if (parsed.records && Array.isArray(parsed.records)) {
+              const originalCount = parsed.records.length;
+              const keepCount = 5; // Only keep first 5 records
+              
+              console.log(`📧 Truncating ${originalCount} records to ${keepCount}`);
+              
+              return {
+                ...item,
+                text: JSON.stringify({
+                  ...parsed,
+                  records: parsed.records.slice(0, keepCount),
+                  _truncated: true,
+                  _originalCount: originalCount,
+                  _truncatedMessage: `⚠️ Result truncated to ${keepCount} of ${originalCount} items to prevent token overflow. The tool returned too much data. To see more results, ask the user to specify filters or use pagination parameters.`
+                })
+              };
+            }
+            
+            // Handle results with 'data' array
+            if (parsed.data && Array.isArray(parsed.data)) {
+              const originalCount = parsed.data.length;
+              const keepCount = 5;
+              
+              console.log(`📦 Truncating ${originalCount} data items to ${keepCount}`);
+              
+              return {
+                ...item,
+                text: JSON.stringify({
+                  ...parsed,
+                  data: parsed.data.slice(0, keepCount),
+                  _truncated: true,
+                  _originalCount: originalCount,
+                  _truncatedMessage: `⚠️ Result truncated to ${keepCount} of ${originalCount} items to prevent token overflow.`
+                })
+              };
+            }
+            
+            // Handle results with 'messages' array (Gmail, Slack, etc.)
+            if (parsed.messages && Array.isArray(parsed.messages)) {
+              const originalCount = parsed.messages.length;
+              const keepCount = 5;
+              
+              console.log(`💬 Truncating ${originalCount} messages to ${keepCount}`);
+              
+              return {
+                ...item,
+                text: JSON.stringify({
+                  ...parsed,
+                  messages: parsed.messages.slice(0, keepCount),
+                  _truncated: true,
+                  _originalCount: originalCount,
+                  _truncatedMessage: `⚠️ Result truncated to ${keepCount} of ${originalCount} messages.`
+                })
+              };
+            }
+            
+            // Generic large JSON - just truncate the string
+            if (item.text.length > MAX_SIZE_BYTES) {
+              console.log(`📄 Truncating generic large JSON response`);
+              return {
+                ...item,
+                text: item.text.substring(0, MAX_SIZE_BYTES) + '\n\n[TRUNCATED - Result too large]'
+              };
+            }
+            
+            return item;
+          } catch (e) {
+            // Not JSON, just truncate the text
+            if (item.text.length > MAX_SIZE_BYTES) {
+              return {
+                ...item,
+                text: item.text.substring(0, MAX_SIZE_BYTES) + '\n\n[TRUNCATED - Result too large]'
+              };
+            }
+            return item;
+          }
+        }
+        return item;
+      });
+      
+      const truncatedResult = {
+        ...result,
+        content: truncatedContent
+      };
+      
+      const newSize = JSON.stringify(truncatedResult).length / 1024;
+      console.log(`✅ Result truncated: ${resultSizeKB.toFixed(2)} KB → ${newSize.toFixed(2)} KB\n`);
+      
+      return truncatedResult;
+    }
+    
+    // Fallback: return truncation message
+    console.log(`⚠️  Using fallback truncation`);
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({
+          _error: 'RESULT_TOO_LARGE',
+          _message: `The tool '${toolName}' returned ${resultSizeKB.toFixed(2)} KB of data (${estimatedTokens.toLocaleString()} tokens), which would exceed the context window limit. Please use pagination parameters like 'limit', 'maxResults', or 'pageSize' to fetch smaller batches of data.`,
+          _originalSizeKB: resultSizeKB.toFixed(2),
+          _maxAllowedKB: MAX_SIZE_KB,
+          _suggestion: 'Ask the user to refine their query or fetch data in smaller chunks.'
+        })
+      }]
+    };
   }
 
   /**
