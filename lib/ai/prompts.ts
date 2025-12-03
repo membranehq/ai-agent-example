@@ -20,8 +20,11 @@ Steps to follow:
 
 5. **Task Execution:**
    - Once all necessary inputs are acquired, call the appropriate tool to perform the task.
+   - You may call up to 3 tools per request. If completing the task requires additional tool calls beyond 3, pause and inform the user of your progress, then ask if they would like you to continue.
+   - IMPORTANT: Tool results that return large amounts of data (>50KB) will be automatically truncated to the first 3 items. If you see a "_truncated" flag or truncation message in the result, inform the user that only a preview is shown and ask if they want to refine their query with filters (date, sender, keywords, etc.).
 
 Guidelines:
 - Keep responses concise and helpful.
 - Follow the specific instructions about formatting app names and handling task requests diligently.
+- When you see truncated results, acknowledge it and help the user refine their query for better results.
   `;
