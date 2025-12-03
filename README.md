@@ -83,11 +83,31 @@ pnpm pinecone:index-actions
 pnpm db:push
 ```
 
-🚀 You’re ready! Now run the development server:
+🚀 You're ready! Now run the development server:
 
 ```bash
 pnpm dev
 ```
+
+### Configuration ⚙️
+
+**Tool Result Truncation**
+
+To prevent token overflow errors, large tool results are automatically truncated. You can configure the truncation threshold via the `MAX_TOOL_RESULT_SIZE_KB` environment variable (default: 50KB).
+
+```bash
+# .env
+MAX_TOOL_RESULT_SIZE_KB=50  # ~12,500 tokens
+```
+
+**Adjusting for different models:**
+
+- **Claude (200K tokens)**: 50KB (default) ✅
+- **GPT-4 Turbo (128K tokens)**: 30-40KB recommended
+- **Gemini 1.5 Pro (1M tokens)**: 200-300KB possible
+- **Claude 3.5 Sonnet (200K tokens)**: 50KB (default) ✅
+
+The default setting works with most models. Only increase if you're using a model with a significantly larger context window and need more data per tool result.
 
 ### How it works
 
