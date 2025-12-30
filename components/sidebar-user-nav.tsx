@@ -18,10 +18,15 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { LoaderIcon } from './icons';
+import { useUserProfile } from '@/hooks/use-user-profile';
 
 export function SidebarUserNav({ user }: { user: User }) {
-  const { data, status } = useSession();
+  const { status } = useSession();
   const { setTheme, theme } = useTheme();
+  const { email: userEmail } = useUserProfile();
+
+  const displayEmail = userEmail || user.email || null;
+  const avatarKey = displayEmail || user.id || 'guest';
 
   return (
     <SidebarMenu>
@@ -46,14 +51,14 @@ export function SidebarUserNav({ user }: { user: User }) {
                 className="data-[state=open]:bg-sidebar-accent bg-background data-[state=open]:text-sidebar-accent-foreground h-10"
               >
                 <Image
-                  src={`https://avatar.vercel.sh/${user.email}`}
-                  alt={user.email ?? 'User Avatar'}
+                  src={`https://avatar.vercel.sh/${avatarKey}`}
+                  alt={displayEmail ?? 'User Avatar'}
                   width={24}
                   height={24}
                   className="rounded-full"
                 />
                 <span data-testid="user-email" className="truncate">
-                  Guest
+                  {displayEmail || 'Guest'}
                 </span>
                 <ChevronUp className="ml-auto" />
               </SidebarMenuButton>

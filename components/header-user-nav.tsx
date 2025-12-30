@@ -1,4 +1,5 @@
 'use client';
+
 import Image from 'next/image';
 import type { User } from 'next-auth';
 import { useSession } from 'next-auth/react';
@@ -10,9 +11,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { useUserProfile } from '@/hooks/use-user-profile';
 
 export function HeaderUserNav({ user }: { user: User }) {
   const { status } = useSession();
+  const { email: userEmail } = useUserProfile();
+
+  const displayEmail = userEmail || user.email || null;
+  const avatarKey = displayEmail || user.id || 'guest';
 
   return (
     <DropdownMenu>
@@ -28,8 +34,8 @@ export function HeaderUserNav({ user }: { user: User }) {
             className="size-12 p-0"
           >
             <Image
-              src={`https://avatar.vercel.sh/${user.email}`}
-              alt={user.email ?? 'User Avatar'}
+              src={`https://avatar.vercel.sh/${avatarKey}`}
+              alt={displayEmail ?? 'User Avatar'}
               width={32}
               height={32}
               className="rounded-full"
@@ -46,8 +52,8 @@ export function HeaderUserNav({ user }: { user: User }) {
         <div className="flex flex-col items-center text-center mb-4">
           <div className="relative mb-3">
             <Image
-              src={`https://avatar.vercel.sh/${user.email}`}
-              alt={user.email ?? 'User Avatar'}
+              src={`https://avatar.vercel.sh/${avatarKey}`}
+              alt={displayEmail ?? 'User Avatar'}
               width={64}
               height={64}
               className="rounded-full ring-2 ring-primary/10"
@@ -57,8 +63,12 @@ export function HeaderUserNav({ user }: { user: User }) {
             </div>
           </div>
           <div className="space-y-0.5 px-4">
-            <h4 className="font-semibold text-base">Guest</h4>
-            <p className="text-xs text-muted-foreground">{user.email}</p>
+            <h4 className="font-semibold text-base">
+              {displayEmail ? 'User' : 'Guest'}
+            </h4>
+            <p className="text-xs text-muted-foreground">
+              {displayEmail || 'No email set'}
+            </p>
           </div>
         </div>
 

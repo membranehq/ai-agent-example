@@ -29,6 +29,7 @@ import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { VisibilityType } from './visibility-selector';
 import { Input } from './ui/input';
 import { ManageIntegrationsModal } from './integration-app/manage-integrations-modal/manage-integrations-modal';
+import { usePostHog } from 'posthog-js/react';
 
 function PureMultimodalInput({
   chatId,
@@ -61,6 +62,7 @@ function PureMultimodalInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+  const posthog = usePostHog();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -114,6 +116,22 @@ function PureMultimodalInput({
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
 
+    // Check if this is a new chat (no messages yet)
+    const isNewChat = messages.length === 0;
+
+    // Track chat message
+    if (posthog && input.trim()) {
+      posthog.capture('user_message_sent', {
+        chat_id: chatId,
+        message: input.trim(),
+        message_length: input.length,
+        has_attachments: attachments.length > 0,
+        attachment_count: attachments.length,
+        visibility_type: selectedVisibilityType,
+        is_new_chat: isNewChat,
+      });
+    }
+
     handleSubmit(undefined, {
       experimental_attachments: attachments,
     });
@@ -132,6 +150,10 @@ function PureMultimodalInput({
     setLocalStorageInput,
     width,
     chatId,
+    input,
+    posthog,
+    selectedVisibilityType,
+    messages,
   ]);
 
   const uploadFile = async (file: File) => {

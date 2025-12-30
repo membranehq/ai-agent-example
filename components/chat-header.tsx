@@ -14,6 +14,7 @@ import { type VisibilityType, VisibilitySelector } from './visibility-selector';
 import type { Session } from 'next-auth';
 import { HeaderUserNav } from './header-user-nav';
 import { GithubIcon } from 'lucide-react';
+import { usePostHog } from 'posthog-js/react';
 
 function PureChatHeader({
   chatId,
@@ -28,6 +29,7 @@ function PureChatHeader({
 }) {
   const router = useRouter();
   const { open } = useSidebar();
+  const posthog = usePostHog();
 
   const { width: windowWidth } = useWindowSize();
 
@@ -43,6 +45,12 @@ function PureChatHeader({
                 variant="outline"
                 className="px-2 md:h-fit"
                 onClick={() => {
+                  // Track new chat creation
+                  if (posthog) {
+                    posthog.capture('new_chat_clicked', {
+                      source: 'header',
+                    });
+                  }
                   router.push('/');
                   router.refresh();
                 }}

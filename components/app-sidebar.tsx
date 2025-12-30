@@ -15,10 +15,12 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { usePostHog } from 'posthog-js/react';
 
 export function AppSidebar({ user }: { user: User | undefined }) {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
+  const posthog = usePostHog();
 
   return (
     <Sidebar className="group-data-[side=left]:border-r-0">
@@ -43,6 +45,12 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                   type="button"
                   className="p-2 h-fit"
                   onClick={() => {
+                    // Track new chat creation
+                    if (posthog) {
+                      posthog.capture('new_chat_clicked', {
+                        source: 'sidebar',
+                      });
+                    }
                     setOpenMobile(false);
                     router.push('/');
                     router.refresh();
