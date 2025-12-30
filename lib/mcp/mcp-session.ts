@@ -283,7 +283,7 @@ export class MCPSessionManager {
     const estimatedTokens = Math.ceil(resultString.length / 4);
     
     // Limit from env or default to 50KB (~12,500 tokens)
-    const MAX_SIZE_KB = parseInt(process.env.MAX_TOOL_RESULT_SIZE_KB || '50', 10);
+    const MAX_SIZE_KB = Number.parseInt(process.env.MAX_TOOL_RESULT_SIZE_KB || '50', 10);
     const MAX_SIZE_BYTES = MAX_SIZE_KB * 1024;
     
     if (resultString.length <= MAX_SIZE_BYTES) {
@@ -359,7 +359,7 @@ export class MCPSessionManager {
             if (item.text.length > MAX_SIZE_BYTES) {
               return {
                 ...item,
-                text: item.text.substring(0, MAX_SIZE_BYTES) + '\n\n[TRUNCATED - Result too large]'
+                text: `${item.text.substring(0, MAX_SIZE_BYTES)}\n\n[TRUNCATED - Result too large]`
               };
             }
             
@@ -369,7 +369,7 @@ export class MCPSessionManager {
             if (item.text.length > MAX_SIZE_BYTES) {
               return {
                 ...item,
-                text: item.text.substring(0, MAX_SIZE_BYTES) + '\n\n[TRUNCATED - Result too large]'
+                text: `${item.text.substring(0, MAX_SIZE_BYTES)}\n\n[TRUNCATED - Result too large]`
               };
             }
             return item;
