@@ -64,11 +64,13 @@ export function HeaderUserNav({ user }: { user: User }) {
           </div>
           <div className="space-y-0.5 px-4">
             <h4 className="font-semibold text-base">
-              {displayEmail ? 'User' : 'Guest'}
+              {user.name}
             </h4>
-            <p className="text-xs text-muted-foreground">
-              {displayEmail || 'No email set'}
-            </p>
+            {displayEmail && (
+              <p className="text-xs text-muted-foreground">
+                {displayEmail}
+              </p>
+            )}
           </div>
         </div>
 
